@@ -1,9 +1,16 @@
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL.*;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL20.*;
 
 public class Main {
 
@@ -13,17 +20,17 @@ public class Main {
     /**
      * Initialise GLFW & window for rendering
      */
-    public void init() {
+    public void init() throws IOException {
 
-        // initialize GLFW
+        // --- init & config GLFW ---
         if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
 
-        // instantiate the GLFW window (using OpenGL 3.3)
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-        // create new GLFW window object (size 1000x1000)
+        // --- GLFW window creation ---
         window = glfwCreateWindow(800, 800, "learning", NULL, NULL);
         if(window == NULL){
             glfwTerminate();
@@ -46,6 +53,52 @@ public class Main {
 
         // make window visible
         glfwShowWindow(window);
+
+        // --- set up vertex data & buffers ---
+        float[] vertices = {
+                -0.5f, -0.5f, 0.0f,
+                0.5f, -0.5f, 0.0f,
+                0.0f,  0.5f, 0.0f
+        };
+        int vbo = glGenBuffers();               // create an int buffer & return int ID
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);     // bind buffer
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
+
+        // --- set up shaders ---
+
+        int vertexShader = glCreateShader(GL_VERTEX_SHADER);    // create vertex shader
+        String filename = "./resources/triangle_vertex_shader.glsl"; // get shader code from file
+        String vertexShaderSource = String.join("\n", Files.readAllLines(Paths.get(filename)));
+        glShaderSource(vertexShader, vertexShaderSource);       // attach shader code
+        glCompileShader(vertexShader);                          // compile shader code
+
+        int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);// create fragment shader
+        filename = "./resources/triangle_fragment_shader.glsl"; // get shader code from file
+        String fragmentShaderSource = String.join("\n", Files.readAllLines(Paths.get(filename)));
+        glShaderSource(fragmentShader, fragmentShaderSource);   // attach shader code
+        glCompileShader(fragmentShader);                        // compile shader code
+
+        int shaderProgram = glCreateProgram();          // create shader program obj
+        glAttachShader(shaderProgram, vertexShader);    // attach compiled shaders to program
+        glAttachShader(shaderProgram, fragmentShader);
+        glLinkProgram(shaderProgram);                   // link attached shaders in one program
+        glUseProgram(shaderProgram);                    // set program as current active shader program
+        glDeleteShader(vertexShader);                   // delete shader objects (no longer needed)
+        glDeleteShader(fragmentShader);
+
+        // --- link vertex attributes ---
+
+        // specify how openGL should interpret the vertex data
+        // arguments to glVertexAttribPointer():
+        //      - pass in data to vertex attrib at location 0
+        //      - size of vertex attrib
+        //      - type of the data
+        //      - specifies if we want the data to be normalized
+        //      - the stride
+        //      - offset of where the position data begins in the buffer.
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3, 0);
+        glEnableVertexAttribArray(0);   // enable the vertex attribute at location 0
     }
 
     /**
@@ -87,7 +140,7 @@ public class Main {
         glfwTerminate();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Main app = new Main();
         app.init();         // initialise application
         app.renderLoop();   // rendering loop
