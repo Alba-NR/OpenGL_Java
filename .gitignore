@@ -1,0 +1,8 @@
+# Backup and temp files
+*~
+
+# IntelliJ project files
+*.iml
+*.iws
+*.ipr
+.idea/
