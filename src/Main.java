@@ -2,7 +2,6 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -11,11 +10,14 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.*;
 
 public class Main {
 
-    // window handle
-    private long window;
+    private long window;        // window handle
+    private int shaderProgram;  // shader prog to use
+    private int vao;            // triangle's VAO obj
+    private int vbo;            // VBO obj
 
     /**
      * Initialise GLFW & window for rendering
@@ -29,6 +31,7 @@ public class Main {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
         // --- GLFW window creation ---
         window = glfwCreateWindow(800, 800, "learning", NULL, NULL);
@@ -54,15 +57,6 @@ public class Main {
         // make window visible
         glfwShowWindow(window);
 
-        // --- set up vertex data & buffers ---
-        float[] vertices = {
-                -0.5f, -0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                0.0f,  0.5f, 0.0f
-        };
-        int vbo = glGenBuffers();               // create an int buffer & return int ID
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);     // bind buffer
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
 
         // --- set up shaders ---
 
@@ -78,27 +72,41 @@ public class Main {
         glShaderSource(fragmentShader, fragmentShaderSource);   // attach shader code
         glCompileShader(fragmentShader);                        // compile shader code
 
-        int shaderProgram = glCreateProgram();          // create shader program obj
+        shaderProgram = glCreateProgram();              // create shader program obj
         glAttachShader(shaderProgram, vertexShader);    // attach compiled shaders to program
         glAttachShader(shaderProgram, fragmentShader);
         glLinkProgram(shaderProgram);                   // link attached shaders in one program
-        glUseProgram(shaderProgram);                    // set program as current active shader program
         glDeleteShader(vertexShader);                   // delete shader objects (no longer needed)
         glDeleteShader(fragmentShader);
 
+        // --- set up vertex data & buffers ---
+        float[] vertices = {
+                -0.5f, -0.5f, 0.0f,
+                0.5f, -0.5f, 0.0f,
+                0.0f,  0.5f, 0.0f
+        };
+        vao = glGenVertexArrays();              // create vertex array
+        vbo = glGenBuffers();                   // create an int buffer & return int ID
+        glBindVertexArray(vao);                 // bind vertex array (VAO)
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);     // bind buffer (VBO)
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
+
         // --- link vertex attributes ---
-
-        // specify how openGL should interpret the vertex data
-        // arguments to glVertexAttribPointer():
-        //      - pass in data to vertex attrib at location 0
-        //      - size of vertex attrib
-        //      - type of the data
-        //      - specifies if we want the data to be normalized
-        //      - the stride
-        //      - offset of where the position data begins in the buffer.
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 3, 0);
+        /*
+        specify how openGL should interpret the vertex data
+        arguments to glVertexAttribPointer():
+              - pass in data to vertex attrib at location 0
+              - size of vertex attrib
+              - type of the data
+              - specifies if we want the data to be normalized
+              - the stride
+              - offset of where the position data begins in the buffer.
+         */
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
         glEnableVertexAttribArray(0);   // enable the vertex attribute at location 0
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);   // unbind VBO
+        glBindVertexArray(0);                       // unbind VAO
     }
 
     /**
@@ -107,24 +115,22 @@ public class Main {
     public void renderLoop(){
         // repeat while GLFW isn't instructed to close
         while(!glfwWindowShouldClose(window)){
+
             // clear screen
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // specify colour to clear to
             glClear(GL_COLOR_BUFFER_BIT); // clear screen's color buffer (entire color buffer is filled w/the colour)
 
-            // input
-            //processInput(window);
-
             // render commands
+            glUseProgram(shaderProgram);
+            glBindVertexArray(vao);         // bind the existing VAO
+            glDrawArrays(GL_TRIANGLES, 0, 3); // draw it as triangles
+            glBindVertexArray(0);           // remove the binding
+
 
             // check events & swap buffers
             glfwSwapBuffers(window);    // swap back & front buffers
             glfwPollEvents();           // checks if any events are triggered, updates window state, & calls corresponding funcs
         }
-    }
-
-    private void processInput(long window){
-        // check if user has pressed escape key (if so => set WindowShouldClose property to true)
-        if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
     }
 
     /**
@@ -136,7 +142,12 @@ public class Main {
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
 
-        // clean/delete all of GLFW's resources
+        // de-allocate all resources
+        glDeleteVertexArrays(vao);
+        glDeleteBuffers(vbo);
+        glDeleteProgram(shaderProgram);
+
+        // clean/delete all other GLFW's resources
         glfwTerminate();
     }
 
