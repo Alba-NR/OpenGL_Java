@@ -84,6 +84,7 @@ public class Main {
         glDeleteShader(vertexShader);                   // delete shader objects (no longer needed)
         glDeleteShader(fragmentShader);
 
+
         // --- set up vertex data & buffers ---
         float[] vertices = {
                 0.5f,  0.5f, 0.0f,      // top right
@@ -135,7 +136,14 @@ public class Main {
 
             // render commands
             glUseProgram(shaderProgram);
-            glBindVertexArray(vao);                                                 // bind element buffer
+
+            double timeValue = glfwGetTime();           // update uniform ourColour
+            float greenValue = ((float) Math.sin(timeValue) / 2.0f) + 0.5f;
+            int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+            glUseProgram(shaderProgram);
+            glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+            glBindVertexArray(vao);                                                // bind element buffer
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);    // draw is as triangles
             glBindVertexArray(0);                                                  // remove the binding
 
