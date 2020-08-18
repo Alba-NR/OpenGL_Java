@@ -16,8 +16,10 @@ public class Main {
 
     private long window;        // window handle
     private int shaderProgram;  // shader prog to use
-    private int vao;            // triangle's VAO obj
-    private int vbo;            // VBO obj
+    private int vao;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
+    private int vbo;            // VBO obj -- to manage vertex data in the GPU's mem
+    private int ebo;            // EBO onj -- for indexed drawing (stores indices of vertices that OpenGL will draw)
+    //note: buffers as fields atm to be able to use them in dif methods
 
     /**
      * Initialise GLFW & window for rendering
@@ -50,13 +52,16 @@ public class Main {
         glfwSetFramebufferSizeCallback(window, (long window, int width, int height) -> glViewport(0, 0, width, height));
         // whenever key is pressed, repeated or released.
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-            if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
+            if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE ) // close window when esc key is released
                 glfwSetWindowShouldClose(window, true);
+            if (key == GLFW_KEY_W) { // view in wireframe mode whilst W is pressed
+                if ( action == GLFW_PRESS ) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                else if ( action == GLFW_RELEASE ) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            }
         });
 
         // make window visible
         glfwShowWindow(window);
-
 
         // --- set up shaders ---
 
@@ -81,15 +86,23 @@ public class Main {
 
         // --- set up vertex data & buffers ---
         float[] vertices = {
-                -0.5f, -0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                0.0f,  0.5f, 0.0f
+                0.5f,  0.5f, 0.0f,      // top right
+                0.5f, -0.5f, 0.0f,      // bottom right
+                -0.5f, -0.5f, 0.0f,     // bottom left
+                -0.5f,  0.5f, 0.0f      // top left
         };
-        vao = glGenVertexArrays();              // create vertex array
-        vbo = glGenBuffers();                   // create an int buffer & return int ID
+        int[] indices = {
+                0, 1, 3,   // first triangle
+                1, 2, 3    // second triangle
+        };
+        vao = glGenVertexArrays();              // create vertex array (VAO- vertex array obj)
+        vbo = glGenBuffers();                   // create an int buffer & return int ID (create VBO- vertex buffer obj)
+        ebo = glGenBuffers();                   // create EBO buffer (EBO- element buffer obj)
         glBindVertexArray(vao);                 // bind vertex array (VAO)
         glBindBuffer(GL_ARRAY_BUFFER, vbo);     // bind buffer (VBO)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
         // --- link vertex attributes ---
         /*
@@ -122,10 +135,9 @@ public class Main {
 
             // render commands
             glUseProgram(shaderProgram);
-            glBindVertexArray(vao);         // bind the existing VAO
-            glDrawArrays(GL_TRIANGLES, 0, 3); // draw it as triangles
-            glBindVertexArray(0);           // remove the binding
-
+            glBindVertexArray(vao);                                                 // bind element buffer
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);    // draw is as triangles
+            glBindVertexArray(0);                                                  // remove the binding
 
             // check events & swap buffers
             glfwSwapBuffers(window);    // swap back & front buffers
