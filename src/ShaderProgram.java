@@ -1,5 +1,4 @@
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL20.glDeleteShader;
 
 /**
  * Represents a shader program to be used in an OpenGL application.
