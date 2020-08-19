@@ -15,7 +15,7 @@ import static org.lwjgl.opengl.GL30.*;
 public class Main {
 
     private long window;        // window handle
-    private int shaderProgram;  // shader prog to use
+    private ShaderProgram shaderProgram;  // shader prog to use
     private int vao;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
     private int vbo;            // VBO obj -- to manage vertex data in the GPU's mem
     private int ebo;            // EBO onj -- for indexed drawing (stores indices of vertices that OpenGL will draw)
@@ -65,24 +65,13 @@ public class Main {
 
         // --- set up shaders ---
 
-        int vertexShader = glCreateShader(GL_VERTEX_SHADER);    // create vertex shader
-        String filename = "./resources/triangle_vertex_shader.glsl"; // get shader code from file
-        String vertexShaderSource = String.join("\n", Files.readAllLines(Paths.get(filename)));
-        glShaderSource(vertexShader, vertexShaderSource);       // attach shader code
-        glCompileShader(vertexShader);                          // compile shader code
+        // create vertex shader
+        Shader vertexShader = new Shader(GL_VERTEX_SHADER, "./resources/triangle_vertex_shader.glsl");
+        // create fragment shader
+        Shader fragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/triangle_fragment_shader.glsl");
 
-        int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);// create fragment shader
-        filename = "./resources/triangle_fragment_shader.glsl"; // get shader code from file
-        String fragmentShaderSource = String.join("\n", Files.readAllLines(Paths.get(filename)));
-        glShaderSource(fragmentShader, fragmentShaderSource);   // attach shader code
-        glCompileShader(fragmentShader);                        // compile shader code
-
-        shaderProgram = glCreateProgram();              // create shader program obj
-        glAttachShader(shaderProgram, vertexShader);    // attach compiled shaders to program
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);                   // link attached shaders in one program
-        glDeleteShader(vertexShader);                   // delete shader objects (no longer needed)
-        glDeleteShader(fragmentShader);
+        // create shader program
+        shaderProgram = new ShaderProgram(vertexShader, fragmentShader);
 
 
         // --- set up vertex data & buffers ---
@@ -150,7 +139,7 @@ public class Main {
             glClear(GL_COLOR_BUFFER_BIT); // clear screen's color buffer (entire color buffer is filled w/the colour)
 
             // render commands
-            glUseProgram(shaderProgram);
+            shaderProgram.use();
 
             glBindVertexArray(vao);                                  // bind element buffer
             glDrawArrays(GL_TRIANGLES, 0, 3);           // draw it (as triangles)
@@ -175,7 +164,7 @@ public class Main {
         // de-allocate all resources
         glDeleteVertexArrays(vao);
         glDeleteBuffers(vbo);
-        glDeleteProgram(shaderProgram);
+        shaderProgram.delete();
 
         // clean/delete all other GLFW's resources
         glfwTerminate();
