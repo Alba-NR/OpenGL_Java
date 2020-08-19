@@ -1,6 +1,8 @@
 import org.lwjgl.BufferUtils;
 
 import javax.imageio.ImageIO;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -18,15 +20,15 @@ public class Texture {
     private int height;
     private int id;
 
-    Texture(String filename){
+    Texture(String filename, boolean isRGBA){
         this.filename = filename;
-        loadTexture();
+        loadTexture(isRGBA);
     }
 
     /**
      * Load texture image from specified file & create OpenGL texture object
      */
-    private void loadTexture(){
+    private void loadTexture(boolean isRGBA){
 
         // load image from file
         BufferedImage img = null;
@@ -40,11 +42,17 @@ public class Texture {
         width = img.getWidth();
         height = img.getHeight();
 
+        // flip image vertically (OpenGL 0.0 texture y-coord at top-left corner; img has it at bottom-left)
+        AffineTransform tx = AffineTransform.getScaleInstance(1, -1);
+        tx.translate(0, -img.getHeight());
+        AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+        img = op.filter(img, null);
+
         // convert BufferedImage to ByteBuffer for OpenGL functions
         int[] pixels = new int[width*height];
         img.getRGB(0, 0, width, height, pixels, 0, width);
 
-        ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 3); //4 for RGBA, 3 for RGB
+        ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * (isRGBA ? 4 : 3)); //4 for RGBA, 3 for RGB
 
         for(int y = 0; y < height; y++){
             for(int x = 0; x < width; x++){
@@ -52,7 +60,7 @@ public class Texture {
                 buffer.put((byte) ((pixel >> 16) & 0xFF));     // Red component
                 buffer.put((byte) ((pixel >> 8 ) & 0xFF));     // Green component
                 buffer.put((byte) ((pixel >> 0 ) & 0xFF));     // Blue component
-                //buffer.put((byte) ((pixel >> 24) & 0xFF));     // Alpha component (if using RGBA)
+                if(isRGBA) buffer.put((byte) ((pixel >> 24) & 0xFF));     // Alpha component (if using RGBA)
             }
         }
 
@@ -74,7 +82,7 @@ public class Texture {
          *      - format and datatype of the source image
          *      - actual image data
          */
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, (isRGBA ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, buffer);
         glGenerateMipmap(GL_TEXTURE_2D);    // generate mipmap
     }
 

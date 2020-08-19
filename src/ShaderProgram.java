@@ -60,7 +60,7 @@ public class ShaderProgram {
      * @param value new integer value
      */
     void uniformSetInt(String name, int value){
-        glUniform1i(glGetUniformLocation(id, name), (value));
+        glUniform1i(glGetUniformLocation(id, name), value);
     }
     /**
      * Sets value of the specified float uniform variable in program to the

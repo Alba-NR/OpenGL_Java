@@ -16,7 +16,6 @@ public class Main {
 
     private long window;        // window handle
     private ShaderProgram shaderProgram;  // shader prog to use
-    private Texture texture;    // texture to use
     private int vao;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
     private int vbo;            // VBO obj -- to manage vertex data in the GPU's mem
     private int ebo;            // EBO onj -- for indexed drawing (stores indices of vertices that OpenGL will draw)
@@ -139,7 +138,13 @@ public class Main {
      * Rendering loop
      */
     public void renderLoop(){
-        texture = new Texture("./resources/container.jpg"); // create new texture obj
+        shaderProgram.use();    // set shader program to use
+
+        Texture texture1 = new Texture("./resources/container.jpg", false); // create texture objects
+        Texture texture2 = new Texture("./resources/awesomeface.png", true);
+
+        shaderProgram.uniformSetInt("texture1", 0); // set texture unit to which each shader sampler belongs to
+        shaderProgram.uniformSetInt("texture2", 1);
 
         // repeat while GLFW isn't instructed to close
         while(!glfwWindowShouldClose(window)){
@@ -149,9 +154,12 @@ public class Main {
             glClear(GL_COLOR_BUFFER_BIT); // clear screen's color buffer (entire color buffer is filled w/the colour)
 
             // render commands
-            shaderProgram.use();
 
-            glBindTexture(GL_TEXTURE_2D, texture.getHandle());  // bind texture
+            glActiveTexture(GL_TEXTURE0);       // bind 1st texture to texture unit 0
+            glBindTexture(GL_TEXTURE_2D, texture1.getHandle());
+            glActiveTexture(GL_TEXTURE1);       // bind 2nd texture to texture unit 1
+            glBindTexture(GL_TEXTURE_2D, texture2.getHandle());
+
             glBindVertexArray(vao);                             // bind vertex attrib buffer
             //glDrawArrays(GL_TRIANGLES, 0, 3);                 // draw it (as triangles) -- FOR TRIANGLE SHAPE
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);    // draw it as triangles (if using EBO) -- FOR SQUARE/RECT SHAPE
