@@ -86,24 +86,32 @@ public class Main {
 
 
         // --- set up vertex data & buffers ---
+        /*
         float[] vertices = {
                 0.5f,  0.5f, 0.0f,      // top right
                 0.5f, -0.5f, 0.0f,      // bottom right
                 -0.5f, -0.5f, 0.0f,     // bottom left
-                -0.5f,  0.5f, 0.0f      // top left
+                -0.5f,  0.5f, 0.0f     // top left
         };
         int[] indices = {
                 0, 1, 3,   // first triangle
                 1, 2, 3    // second triangle
         };
+         */
+        float[] vertices = {
+                // positions         // colours
+                0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,    // bottom right
+                -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,    // bottom left
+                0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f     // top
+        };
         vao = glGenVertexArrays();              // create vertex array (VAO- vertex array obj)
         vbo = glGenBuffers();                   // create an int buffer & return int ID (create VBO- vertex buffer obj)
-        ebo = glGenBuffers();                   // create EBO buffer (EBO- element buffer obj)
+        //ebo = glGenBuffers();                   // create EBO buffer (EBO- element buffer obj)
         glBindVertexArray(vao);                 // bind vertex array (VAO)
         glBindBuffer(GL_ARRAY_BUFFER, vbo);     // bind buffer (VBO)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
         // --- link vertex attributes ---
         /*
@@ -116,10 +124,17 @@ public class Main {
               - the stride
               - offset of where the position data begins in the buffer.
          */
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-        glEnableVertexAttribArray(0);   // enable the vertex attribute at location 0
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);   // unbind VBO
+        // position attrib (at location 0)
+        // stride is 6*4 for the floats (4 bytes) (x,y,z)(r,g,b)
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6*4, 0);
+        glEnableVertexAttribArray(0);
+        // colour attrib (at location 1)
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6*4, 3*4); // 3*4 for skipping the 1st 3 floats (x,y,z)
+        glEnableVertexAttribArray(1);
+
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);    // unbind VBO
         glBindVertexArray(0);                       // unbind VAO
     }
 
@@ -131,21 +146,16 @@ public class Main {
         while(!glfwWindowShouldClose(window)){
 
             // clear screen
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // specify colour to clear to
+            glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // specify colour to clear to
             glClear(GL_COLOR_BUFFER_BIT); // clear screen's color buffer (entire color buffer is filled w/the colour)
 
             // render commands
             glUseProgram(shaderProgram);
 
-            double timeValue = glfwGetTime();           // update uniform ourColour
-            float greenValue = ((float) Math.sin(timeValue) / 2.0f) + 0.5f;
-            int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-            glUseProgram(shaderProgram);
-            glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
-            glBindVertexArray(vao);                                                // bind element buffer
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);    // draw is as triangles
-            glBindVertexArray(0);                                                  // remove the binding
+            glBindVertexArray(vao);                                  // bind element buffer
+            glDrawArrays(GL_TRIANGLES, 0, 3);           // draw it (as triangles)
+            //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);    // draw it as triangles (if using EBO)
+            glBindVertexArray(0);                                    // remove the binding
 
             // check events & swap buffers
             glfwSwapBuffers(window);    // swap back & front buffers
