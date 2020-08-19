@@ -16,10 +16,11 @@ public class Main {
 
     private long window;        // window handle
     private ShaderProgram shaderProgram;  // shader prog to use
+    private Texture texture;    // texture to use
     private int vao;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
     private int vbo;            // VBO obj -- to manage vertex data in the GPU's mem
     private int ebo;            // EBO onj -- for indexed drawing (stores indices of vertices that OpenGL will draw)
-    //note: buffers as fields atm to be able to use them in dif methods
+    //note: buffers, shaderProg & texture as fields atm to be able to use them in dif methods
 
     /**
      * Initialise GLFW & window for rendering
@@ -75,32 +76,36 @@ public class Main {
 
 
         // --- set up vertex data & buffers ---
-        /*
+
         float[] vertices = {
-                0.5f,  0.5f, 0.0f,      // top right
-                0.5f, -0.5f, 0.0f,      // bottom right
-                -0.5f, -0.5f, 0.0f,     // bottom left
-                -0.5f,  0.5f, 0.0f     // top left
+                // positions          // colors           // texture coords
+                0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+                0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+                -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+                -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
         };
         int[] indices = {
                 0, 1, 3,   // first triangle
                 1, 2, 3    // second triangle
         };
-         */
+        /*
+        // rainbow triangle :)
         float[] vertices = {
                 // positions         // colours
                 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,    // bottom right
                 -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,    // bottom left
                 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f     // top
         };
+
+         */
         vao = glGenVertexArrays();              // create vertex array (VAO- vertex array obj)
         vbo = glGenBuffers();                   // create an int buffer & return int ID (create VBO- vertex buffer obj)
-        //ebo = glGenBuffers();                   // create EBO buffer (EBO- element buffer obj)
+        ebo = glGenBuffers();                   // create EBO buffer (EBO- element buffer obj)
         glBindVertexArray(vao);                 // bind vertex array (VAO)
         glBindBuffer(GL_ARRAY_BUFFER, vbo);     // bind buffer (VBO)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
         // --- link vertex attributes ---
         /*
@@ -115,12 +120,15 @@ public class Main {
          */
 
         // position attrib (at location 0)
-        // stride is 6*4 for the floats (4 bytes) (x,y,z)(r,g,b)
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6*4, 0);
+        // stride is 8*4 for the floats (1 float -> 4 bytes) (x,y,z)(r,g,b)(s,t)
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 8*4, 0);
         glEnableVertexAttribArray(0);
         // colour attrib (at location 1)
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6*4, 3*4); // 3*4 for skipping the 1st 3 floats (x,y,z)
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 8*4, 3*4); // 3*4 for skipping the 1st 3 floats (x,y,z)
         glEnableVertexAttribArray(1);
+        // texel attrib
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, 8*4, 6*4);
+        glEnableVertexAttribArray(2);
 
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);    // unbind VBO
@@ -131,6 +139,8 @@ public class Main {
      * Rendering loop
      */
     public void renderLoop(){
+        texture = new Texture("./resources/container.jpg"); // create new texture obj
+
         // repeat while GLFW isn't instructed to close
         while(!glfwWindowShouldClose(window)){
 
@@ -141,10 +151,11 @@ public class Main {
             // render commands
             shaderProgram.use();
 
-            glBindVertexArray(vao);                                  // bind element buffer
-            glDrawArrays(GL_TRIANGLES, 0, 3);           // draw it (as triangles)
-            //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);    // draw it as triangles (if using EBO)
-            glBindVertexArray(0);                                    // remove the binding
+            glBindTexture(GL_TEXTURE_2D, texture.getHandle());  // bind texture
+            glBindVertexArray(vao);                             // bind vertex attrib buffer
+            //glDrawArrays(GL_TRIANGLES, 0, 3);                 // draw it (as triangles) -- FOR TRIANGLE SHAPE
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);    // draw it as triangles (if using EBO) -- FOR SQUARE/RECT SHAPE
+            glBindVertexArray(0);                               // remove the binding
 
             // check events & swap buffers
             glfwSwapBuffers(window);    // swap back & front buffers

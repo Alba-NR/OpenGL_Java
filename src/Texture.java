@@ -44,7 +44,7 @@ public class Texture {
         int[] pixels = new int[width*height];
         img.getRGB(0, 0, width, height, pixels, 0, width);
 
-        ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 4); //4 for RGBA, 3 for RGB
+        ByteBuffer buffer = BufferUtils.createByteBuffer(width * height * 3); //4 for RGBA, 3 for RGB
 
         for(int y = 0; y < height; y++){
             for(int x = 0; x < width; x++){
@@ -52,7 +52,7 @@ public class Texture {
                 buffer.put((byte) ((pixel >> 16) & 0xFF));     // Red component
                 buffer.put((byte) ((pixel >> 8 ) & 0xFF));     // Green component
                 buffer.put((byte) ((pixel >> 0 ) & 0xFF));     // Blue component
-                buffer.put((byte) ((pixel >> 24) & 0xFF));     // Alpha component (if using RGBA)
+                //buffer.put((byte) ((pixel >> 24) & 0xFF));     // Alpha component (if using RGBA)
             }
         }
 
