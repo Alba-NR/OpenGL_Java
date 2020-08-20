@@ -1,7 +1,7 @@
 
+import org.joml.Matrix4f;
+
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -143,29 +143,35 @@ public class Main {
         Texture texture1 = new Texture("./resources/container.jpg", false); // create texture objects
         Texture texture2 = new Texture("./resources/awesomeface.png", true);
 
-        shaderProgram.uniformSetInt("texture1", 0); // set texture unit to which each shader sampler belongs to
-        shaderProgram.uniformSetInt("texture2", 1);
+        shaderProgram.uploadInt("texture1", 0); // set texture unit to which each shader sampler belongs to
+        shaderProgram.uploadInt("texture2", 1);
 
         // repeat while GLFW isn't instructed to close
         while(!glfwWindowShouldClose(window)){
 
-            // clear screen
+            // --- clear screen ---
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // specify colour to clear to
             glClear(GL_COLOR_BUFFER_BIT); // clear screen's color buffer (entire color buffer is filled w/the colour)
 
-            // render commands
+            // --- render commands ---
 
+            // textures
             glActiveTexture(GL_TEXTURE0);       // bind 1st texture to texture unit 0
             glBindTexture(GL_TEXTURE_2D, texture1.getHandle());
             glActiveTexture(GL_TEXTURE1);       // bind 2nd texture to texture unit 1
             glBindTexture(GL_TEXTURE_2D, texture2.getHandle());
 
+            // create & set transformation matrix
+            Matrix4f trans = (new Matrix4f()).rotate((float) glfwGetTime(), 0.0f, 0.0f, 1.0f);
+            shaderProgram.uploadMatrix4f(trans, "transform");
+
+            // draw/render
             glBindVertexArray(vao);                             // bind vertex attrib buffer
             //glDrawArrays(GL_TRIANGLES, 0, 3);                 // draw it (as triangles) -- FOR TRIANGLE SHAPE
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);    // draw it as triangles (if using EBO) -- FOR SQUARE/RECT SHAPE
             glBindVertexArray(0);                               // remove the binding
 
-            // check events & swap buffers
+            // --- check events & swap buffers ---
             glfwSwapBuffers(window);    // swap back & front buffers
             glfwPollEvents();           // checks if any events are triggered, updates window state, & calls corresponding funcs
         }

@@ -1,3 +1,9 @@
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
+
+import java.nio.FloatBuffer;
+
 import static org.lwjgl.opengl.GL20.*;
 
 /**
@@ -59,7 +65,7 @@ public class ShaderProgram {
      * @param name name of integer uniform variable to change value of
      * @param value new integer value
      */
-    void uniformSetInt(String name, int value){
+    void uploadInt(String name, int value){
         glUniform1i(glGetUniformLocation(id, name), value);
     }
     /**
@@ -68,7 +74,34 @@ public class ShaderProgram {
      * @param name name of float uniform variable to change value of
      * @param value new float value
      */
-    void uniformSetFloat(String name, float value){
+    void uploadFloat(String name, float value){
         glUniform1f(glGetUniformLocation(id, name), value);
+    }
+
+    /**
+     * Upload a 3x3 matrix 'm' to 'target' shader uniform variable
+     * @param m {@link Matrix3f} to upload (i.e. to set 'target' to)
+     * @param target name of uniform variable to which to upload matrix
+     */
+    void uploadMatrix3f(Matrix3f m, String target) {
+        int targetLocation = glGetUniformLocation(id, target);   // get location of transform matrix uniform
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(9);
+        m.get(buffer);  // store matrix in column-major order into buffer
+        glUniformMatrix3fv(targetLocation, false, buffer);   // set matrix as uniform value
+    }
+    /**
+     * Upload a 4x4 matrix 'm' to 'target' shader uniform variable
+     * @param m {@link Matrix4f} to upload (i.e. to set 'target' to)
+     * @param target name of uniform variable to which to upload matrix
+     */
+    void uploadMatrix4f(Matrix4f m, String target) {
+        int targetLocation = glGetUniformLocation(id, target);   // get location of transform matrix uniform
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
+        m.get(buffer);  // store matrix in column-major order into buffer
+        glUniformMatrix4fv(targetLocation, false, buffer);   // set matrix as uniform value
+    }
+
+    public int getHandle(){
+        return id;
     }
 }
