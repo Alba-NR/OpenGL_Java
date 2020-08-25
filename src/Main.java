@@ -1,5 +1,6 @@
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.io.IOException;
 
@@ -21,6 +22,10 @@ public class Main {
     private int ebo;            // EBO onj -- for indexed drawing (stores indices of vertices that OpenGL will draw)
     //note: buffers, shaderProg & texture as fields atm to be able to use them in dif methods
 
+    // screen size settings
+    final private int SCR_WIDTH = 800;
+    final private int SCR_HEIGHT = 600;
+
     /**
      * Initialise GLFW & window for rendering
      */
@@ -36,7 +41,7 @@ public class Main {
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
         // --- GLFW window creation ---
-        window = glfwCreateWindow(800, 800, "learning", NULL, NULL);
+        window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "learning", NULL, NULL);
         if(window == NULL){
             glfwTerminate();
             throw new RuntimeException("Failed to create the GLFW window");
@@ -44,7 +49,7 @@ public class Main {
         // make the OpenGL context current
         glfwMakeContextCurrent(window);
         createCapabilities();  // necessary here
-        glViewport(0, 0, 800, 800);   // set OpenGL window (OpenGL will render in this viewport)
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);   // set OpenGL window (OpenGL will render in this viewport)
 
         // --- callback functions registered after window is created & before render loop is init ---
 
@@ -66,9 +71,9 @@ public class Main {
         // --- set up shaders ---
 
         // create vertex shader
-        Shader vertexShader = new Shader(GL_VERTEX_SHADER, "./resources/triangle_vertex_shader.glsl");
+        Shader vertexShader = new Shader(GL_VERTEX_SHADER, "./resources/vertex_shader.glsl");
         // create fragment shader
-        Shader fragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/triangle_fragment_shader.glsl");
+        Shader fragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/fragment_shader.glsl");
 
         // create shader program
         shaderProgram = new ShaderProgram(vertexShader, fragmentShader);
@@ -146,6 +151,18 @@ public class Main {
         shaderProgram.uploadInt("texture1", 0); // set texture unit to which each shader sampler belongs to
         shaderProgram.uploadInt("texture2", 1);
 
+        // create MVP matrix
+        Matrix4f model = new Matrix4f();
+        model.rotate((float) Math.toRadians(-55.0), new Vector3f(1.0f, 0.0f, 0.0f));
+        Matrix4f view = new Matrix4f();
+        view.translate(new Vector3f(0.0f, 0.0f, -3.0f));
+        Matrix4f projection = new Matrix4f();
+        projection.setPerspective((float) Math.toRadians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        Matrix4f mvp = new Matrix4f();
+        projection.mul(view.mul(model), mvp);
+        // upload mvp matrix to program
+        shaderProgram.uploadMatrix4f(mvp, "mvp_matrix");
+
         // repeat while GLFW isn't instructed to close
         while(!glfwWindowShouldClose(window)){
 
@@ -162,8 +179,8 @@ public class Main {
             glBindTexture(GL_TEXTURE_2D, texture2.getHandle());
 
             // create & set transformation matrix
-            Matrix4f trans = (new Matrix4f()).rotate((float) glfwGetTime(), 0.0f, 0.0f, 1.0f);
-            shaderProgram.uploadMatrix4f(trans, "transform");
+            //Matrix4f trans = (new Matrix4f()).rotate((float) glfwGetTime(), 0.0f, 0.0f, 1.0f);
+            //shaderProgram.uploadMatrix4f(trans, "transform");
 
             // draw/render
             glBindVertexArray(vao);                             // bind vertex attrib buffer
