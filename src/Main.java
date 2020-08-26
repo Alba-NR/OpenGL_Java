@@ -19,7 +19,6 @@ public class Main {
     private ShaderProgram shaderProgram;  // shader prog to use
     private int vao;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
     private int vbo;            // VBO obj -- to manage vertex data in the GPU's mem
-    private int ebo;            // EBO onj -- for indexed drawing (stores indices of vertices that OpenGL will draw)
     //note: buffers, shaderProg & texture as fields atm to be able to use them in dif methods
 
     // screen size settings
@@ -50,6 +49,8 @@ public class Main {
         glfwMakeContextCurrent(window);
         createCapabilities();  // necessary here
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);   // set OpenGL window (OpenGL will render in this viewport)
+
+        glEnable(GL_DEPTH_TEST); // enable depth testing
 
         // --- callback functions registered after window is created & before render loop is init ---
 
@@ -82,34 +83,54 @@ public class Main {
         // --- set up vertex data & buffers ---
 
         float[] vertices = {
-                // positions          // colors           // texture coords
-                0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-                0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-                -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-                -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
-        };
-        int[] indices = {
-                0, 1, 3,   // first triangle
-                1, 2, 3    // second triangle
-        };
-        /*
-        // rainbow triangle :)
-        float[] vertices = {
-                // positions         // colours
-                0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,    // bottom right
-                -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,    // bottom left
-                0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f     // top
+                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+                0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+                0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+                -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
         };
 
-         */
         vao = glGenVertexArrays();              // create vertex array (VAO- vertex array obj)
         vbo = glGenBuffers();                   // create an int buffer & return int ID (create VBO- vertex buffer obj)
-        ebo = glGenBuffers();                   // create EBO buffer (EBO- element buffer obj)
         glBindVertexArray(vao);                 // bind vertex array (VAO)
         glBindBuffer(GL_ARRAY_BUFFER, vbo);     // bind buffer (VBO)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
         // --- link vertex attributes ---
         /*
@@ -124,16 +145,12 @@ public class Main {
          */
 
         // position attrib (at location 0)
-        // stride is 8*4 for the floats (1 float -> 4 bytes) (x,y,z)(r,g,b)(s,t)
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 8*4, 0);
+        // stride is 5*4 for the floats (1 float -> 4 bytes) (x,y,z)(s,t)
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 5*4, 0);
         glEnableVertexAttribArray(0);
-        // colour attrib (at location 1)
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 8*4, 3*4); // 3*4 for skipping the 1st 3 floats (x,y,z)
-        glEnableVertexAttribArray(1);
         // texel attrib
-        glVertexAttribPointer(2, 2, GL_FLOAT, false, 8*4, 6*4);
-        glEnableVertexAttribArray(2);
-
+        glVertexAttribPointer(1, 2, GL_FLOAT, false, 5*4, 3*4);
+        glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);    // unbind VBO
         glBindVertexArray(0);                       // unbind VAO
@@ -145,30 +162,40 @@ public class Main {
     public void renderLoop(){
         shaderProgram.use();    // set shader program to use
 
+        // textures
         Texture texture1 = new Texture("./resources/container.jpg", false); // create texture objects
         Texture texture2 = new Texture("./resources/awesomeface.png", true);
-
         shaderProgram.uploadInt("texture1", 0); // set texture unit to which each shader sampler belongs to
         shaderProgram.uploadInt("texture2", 1);
 
-        // create MVP matrix
-        Matrix4f model = new Matrix4f();
-        model.rotate((float) Math.toRadians(-55.0), new Vector3f(1.0f, 0.0f, 0.0f));
+        // create & upload view & projection matrices
         Matrix4f view = new Matrix4f();
-        view.translate(new Vector3f(0.0f, 0.0f, -3.0f));
+        view.translate(0.0f, 0.0f, -4.0f);
+        shaderProgram.uploadMatrix4f(view, "view_m");
         Matrix4f projection = new Matrix4f();
-        projection.setPerspective((float) Math.toRadians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-        Matrix4f mvp = new Matrix4f();
-        projection.mul(view.mul(model), mvp);
-        // upload mvp matrix to program
-        shaderProgram.uploadMatrix4f(mvp, "mvp_matrix");
+        projection.setPerspective((float) Math.PI / 4, (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
+        shaderProgram.uploadMatrix4f(projection, "proj_m");
+
+        // multiple cubes
+        Vector3f[] cubePositions = {
+                new Vector3f(0.0f,  0.0f,  0.0f),
+                new Vector3f(2.0f,  5.0f, -15.0f),
+                new Vector3f(-1.5f, -2.2f, -2.5f),
+                new Vector3f(-3.8f, -2.0f, -12.3f),
+                new Vector3f( 2.4f, -0.4f, -3.5f),
+                new Vector3f(-1.7f,  3.0f, -7.5f),
+                new Vector3f( 1.3f, -2.0f, -2.5f),
+                new Vector3f( 1.5f,  2.0f, -2.5f),
+                new Vector3f( 1.5f,  0.2f, -1.5f),
+                new Vector3f(-1.3f,  1.0f, -1.5f)
+        };
 
         // repeat while GLFW isn't instructed to close
         while(!glfwWindowShouldClose(window)){
 
             // --- clear screen ---
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // specify colour to clear to
-            glClear(GL_COLOR_BUFFER_BIT); // clear screen's color buffer (entire color buffer is filled w/the colour)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen's color buffer & depth buffer
 
             // --- render commands ---
 
@@ -178,15 +205,26 @@ public class Main {
             glActiveTexture(GL_TEXTURE1);       // bind 2nd texture to texture unit 1
             glBindTexture(GL_TEXTURE_2D, texture2.getHandle());
 
-            // create & set transformation matrix
-            //Matrix4f trans = (new Matrix4f()).rotate((float) glfwGetTime(), 0.0f, 0.0f, 1.0f);
-            //shaderProgram.uploadMatrix4f(trans, "transform");
+            /* // single cube version
+            // create & set model matrix
+            Matrix4f model = new Matrix4f();
+            model.rotate((float) (glfwGetTime() * Math.toRadians(50.0f)), (new Vector3f(0.5f, 1.0f,0.0f)).normalize());
+            // upload model matrix to program
+            shaderProgram.uploadMatrix4f(model, "model_m");
+             */
 
             // draw/render
-            glBindVertexArray(vao);                             // bind vertex attrib buffer
-            //glDrawArrays(GL_TRIANGLES, 0, 3);                 // draw it (as triangles) -- FOR TRIANGLE SHAPE
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);    // draw it as triangles (if using EBO) -- FOR SQUARE/RECT SHAPE
-            glBindVertexArray(0);                               // remove the binding
+            glBindVertexArray(vao);     // bind vertex attrib buffer
+
+            for(int i = 0; i < cubePositions.length; i++){
+                Matrix4f model = new Matrix4f();
+                model.translate(cubePositions[i]);
+                model.rotate((float) Math.toRadians(20.0f * i), (new Vector3f(1.0f, 0.3f, 0.5f)).normalize());
+                shaderProgram.uploadMatrix4f(model, "model_m");
+
+                glDrawArrays(GL_TRIANGLES, 0, 36);  // draw it (as triangles)
+            }
+            glBindVertexArray(0);       // remove the binding
 
             // --- check events & swap buffers ---
             glfwSwapBuffers(window);    // swap back & front buffers
