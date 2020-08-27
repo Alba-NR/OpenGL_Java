@@ -13,6 +13,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
+
 public class Main {
 
     private long window;        // window handle
@@ -168,10 +169,7 @@ public class Main {
         shaderProgram.uploadInt("texture1", 0); // set texture unit to which each shader sampler belongs to
         shaderProgram.uploadInt("texture2", 1);
 
-        // create & upload view & projection matrices
-        Matrix4f view = new Matrix4f();
-        view.translate(0.0f, 0.0f, -4.0f);
-        shaderProgram.uploadMatrix4f(view, "view_m");
+        // create & upload projection matrix
         Matrix4f projection = new Matrix4f();
         projection.setPerspective((float) Math.PI / 4, (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
         shaderProgram.uploadMatrix4f(projection, "proj_m");
@@ -189,6 +187,7 @@ public class Main {
                 new Vector3f( 1.5f,  0.2f, -1.5f),
                 new Vector3f(-1.3f,  1.0f, -1.5f)
         };
+
 
         // repeat while GLFW isn't instructed to close
         while(!glfwWindowShouldClose(window)){
@@ -216,8 +215,17 @@ public class Main {
             // draw/render
             glBindVertexArray(vao);     // bind vertex attrib buffer
 
+            float radius = 10.0f;  // calc view matrix (as if camera rotates around scene rn...)
+            float camX = (float) Math.sin(glfwGetTime()) * radius;
+            float camZ = (float) Math.cos(glfwGetTime()) * radius;
+            Vector3f cameraCentre = new Vector3f(camX, 0.0f, camZ);
+            Vector3f cameraTarget = new Vector3f(0.0f, 0.0f, 0.0f);
+            Matrix4f view = new Matrix4f();
+            view.lookAt(cameraCentre, cameraTarget, new Vector3f(0.0f, 1.0f, 0.0f));
+            shaderProgram.uploadMatrix4f(view, "view_m");
+
             for(int i = 0; i < cubePositions.length; i++){
-                Matrix4f model = new Matrix4f();
+                Matrix4f model = new Matrix4f();  // calc model matrix
                 model.translate(cubePositions[i]);
                 model.rotate((float) Math.toRadians(20.0f * i), (new Vector3f(1.0f, 0.3f, 0.5f)).normalize());
                 shaderProgram.uploadMatrix4f(model, "model_m");
