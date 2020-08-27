@@ -20,7 +20,9 @@ public class Main {
     private ShaderProgram shaderProgram;  // shader prog to use
     private int vao;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
     private int vbo;            // VBO obj -- to manage vertex data in the GPU's mem
-    //note: buffers, shaderProg & texture as fields atm to be able to use them in dif methods
+    private Camera camera = new Camera();
+    private float cameraSpeed;
+    //note: buffers, shaderProg, texture & camera as fields atm to be able to use them in dif methods
 
     // screen size settings
     final private int SCR_WIDTH = 800;
@@ -65,6 +67,7 @@ public class Main {
                 if ( action == GLFW_PRESS ) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                 else if ( action == GLFW_RELEASE ) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             }
+            // arrows used to move camera (in processArrowsInput() method)
         });
 
         // make window visible
@@ -144,7 +147,6 @@ public class Main {
               - the stride
               - offset of where the position data begins in the buffer.
          */
-
         // position attrib (at location 0)
         // stride is 5*4 for the floats (1 float -> 4 bytes) (x,y,z)(s,t)
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 5*4, 0);
@@ -188,9 +190,19 @@ public class Main {
                 new Vector3f(-1.3f,  1.0f, -1.5f)
         };
 
+        float deltaTime;	        // Time between current frame and last frame
+        float lastFrameT = 0.0f;    // Time of last frame
 
         // repeat while GLFW isn't instructed to close
         while(!glfwWindowShouldClose(window)){
+            // --- per-frame time logic ---
+            float currentFrameT = (float) glfwGetTime();
+            deltaTime = currentFrameT - lastFrameT;
+            lastFrameT = currentFrameT;
+            cameraSpeed = 5.0f * deltaTime;
+
+            // --- process keyboard arrows input --
+            processArrowsInput();
 
             // --- clear screen ---
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // specify colour to clear to
@@ -204,24 +216,11 @@ public class Main {
             glActiveTexture(GL_TEXTURE1);       // bind 2nd texture to texture unit 1
             glBindTexture(GL_TEXTURE_2D, texture2.getHandle());
 
-            /* // single cube version
-            // create & set model matrix
-            Matrix4f model = new Matrix4f();
-            model.rotate((float) (glfwGetTime() * Math.toRadians(50.0f)), (new Vector3f(0.5f, 1.0f,0.0f)).normalize());
-            // upload model matrix to program
-            shaderProgram.uploadMatrix4f(model, "model_m");
-             */
-
             // draw/render
             glBindVertexArray(vao);     // bind vertex attrib buffer
 
-            float radius = 10.0f;  // calc view matrix (as if camera rotates around scene rn...)
-            float camX = (float) Math.sin(glfwGetTime()) * radius;
-            float camZ = (float) Math.cos(glfwGetTime()) * radius;
-            Vector3f cameraCentre = new Vector3f(camX, 0.0f, camZ);
-            Vector3f cameraTarget = new Vector3f(0.0f, 0.0f, 0.0f);
-            Matrix4f view = new Matrix4f();
-            view.lookAt(cameraCentre, cameraTarget, new Vector3f(0.0f, 1.0f, 0.0f));
+             // calc view matrix
+            Matrix4f view = camera.calcLookAt();
             shaderProgram.uploadMatrix4f(view, "view_m");
 
             for(int i = 0; i < cubePositions.length; i++){
@@ -237,6 +236,26 @@ public class Main {
             // --- check events & swap buffers ---
             glfwSwapBuffers(window);    // swap back & front buffers
             glfwPollEvents();           // checks if any events are triggered, updates window state, & calls corresponding funcs
+        }
+    }
+
+    /**
+     * Called in render loop to contnually process input from keyboard arrows in each frame.
+     */
+    private void processArrowsInput(){
+        // camera movement using arrows
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            // UP -> cameraPos += cameraFront * cameraSpeed
+            camera.setCameraPos(camera.getCameraPos().add(camera.getCameraFront().mul(cameraSpeed)));
+        }if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            // DOWN -> cameraPos -= cameraFront * cameraSpeed
+            camera.setCameraPos(camera.getCameraPos().sub(camera.getCameraFront().mul(cameraSpeed)));
+        }if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            // LEFT -> cameraPos -= normalize(cross(cameraFront, cameraUp)) * cameraSpeed
+            camera.setCameraPos(camera.getCameraPos().sub(camera.getCameraFront().cross(camera.getCameraUp()).normalize().mul(cameraSpeed)));
+        }if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            // RIGHT -> cameraPos += normalize(cross(cameraFront, cameraUp)) * cameraSpeed
+            camera.setCameraPos(camera.getCameraPos().add(camera.getCameraFront().cross(camera.getCameraUp()).normalize().mul(cameraSpeed)));
         }
     }
 
