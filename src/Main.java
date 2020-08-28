@@ -26,12 +26,8 @@ public class Main {
     final private int SCR_HEIGHT = 900;
 
     private Camera camera = new Camera();   // camera & mouse
-    private float cameraSpeed;
     private double lastX = SCR_WIDTH / 2.0f, lastY = SCR_HEIGHT / 2.0f;
-    private double yaw   = -90.0f;
-    private double pitch =  0.0f;
-    private boolean firstMouse;
-    private double fov = 45.0;
+    private boolean firstMouse = true;
 
 
     /**
@@ -87,26 +83,10 @@ public class Main {
             lastX = xpos;
             lastY = ypos;
 
-            float sensitivity = 0.1f;
-            xoffset *= sensitivity;
-            yoffset *= sensitivity;
-
-            yaw   += xoffset;
-            pitch += yoffset;
-
-            if(pitch > 89.0f) pitch =  89.0; // constraint pitch
-            if(pitch < -89.0f) pitch = -89.0;
-
-            Vector3f direction = new Vector3f();
-            direction.setComponent(0, (float) (Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch))));
-            direction.setComponent(1, (float) Math.toRadians(pitch));
-            direction.setComponent(2, (float) (Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch))));
-            camera.setCameraFront(direction.normalize());
+            camera.processMouseMovement(xoffset, yoffset, true);
         });
         glfwSetScrollCallback(window, (long window, double xoffset, double yoffset) -> { // 'zoom' illusion when scroll w/mouse
-            fov -= yoffset;
-            if (fov < 1.0) fov = 1.0;
-            if (fov > 45.0) fov = 45.0;
+            camera.processMouseScroll(yoffset);
         });
 
         // make window visible
@@ -225,10 +205,10 @@ public class Main {
             float currentFrameT = (float) glfwGetTime();
             deltaTime = currentFrameT - lastFrameT;
             lastFrameT = currentFrameT;
-            cameraSpeed = 5.0f * deltaTime;
+            camera.setCameraSpeed(5.0f * deltaTime);
 
             // --- process keyboard arrows input --
-            processArrowsInput();
+            processAWSDInput();
 
             // --- clear screen ---
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // specify colour to clear to
@@ -251,7 +231,7 @@ public class Main {
 
             // create & upload projection matrix
             Matrix4f projection = new Matrix4f();
-            projection.setPerspective((float) Math.toRadians(fov), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
+            projection.setPerspective((float) Math.toRadians(camera.getFOV()), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
             shaderProgram.uploadMatrix4f(projection, "proj_m");
 
             for(int i = 0; i < cubePositions.length; i++){
@@ -271,23 +251,14 @@ public class Main {
     }
 
     /**
-     * Called in render loop to contnually process input from keyboard AWSD keys in each frame.
+     * Called in render loop to continually process input from keyboard AWSD keys in each frame.
      */
-    private void processArrowsInput(){
+    private void processAWSDInput(){
         // camera movement using AWSD
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            // W -> cameraPos += cameraFront * cameraSpeed
-            camera.setCameraPos(camera.getCameraPos().add(camera.getCameraFront().mul(cameraSpeed)));
-        }if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            // S -> cameraPos -= cameraFront * cameraSpeed
-            camera.setCameraPos(camera.getCameraPos().sub(camera.getCameraFront().mul(cameraSpeed)));
-        }if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            // A -> cameraPos -= normalize(cross(cameraFront, cameraUp)) * cameraSpeed
-            camera.setCameraPos(camera.getCameraPos().sub(camera.getCameraFront().cross(camera.getCameraUp()).normalize().mul(cameraSpeed)));
-        }if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            // D -> cameraPos += normalize(cross(cameraFront, cameraUp)) * cameraSpeed
-            camera.setCameraPos(camera.getCameraPos().add(camera.getCameraFront().cross(camera.getCameraUp()).normalize().mul(cameraSpeed)));
-        }
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.FORWARD);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.BACKWARD);
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.LEFT);
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)camera.processKeyboardInput(CameraMovement.RIGHT);
     }
 
     /**
