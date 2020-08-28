@@ -20,13 +20,19 @@ public class Main {
     private ShaderProgram shaderProgram;  // shader prog to use
     private int vao;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
     private int vbo;            // VBO obj -- to manage vertex data in the GPU's mem
-    private Camera camera = new Camera();
-    private float cameraSpeed;
     //note: buffers, shaderProg, texture & camera as fields atm to be able to use them in dif methods
 
-    // screen size settings
-    final private int SCR_WIDTH = 800;
-    final private int SCR_HEIGHT = 600;
+    final private int SCR_WIDTH = 1200;  // screen size settings
+    final private int SCR_HEIGHT = 900;
+
+    private Camera camera = new Camera();   // camera & mouse
+    private float cameraSpeed;
+    private double lastX = SCR_WIDTH / 2.0f, lastY = SCR_HEIGHT / 2.0f;
+    private double yaw   = -90.0f;
+    private double pitch =  0.0f;
+    private boolean firstMouse;
+    private double fov = 45.0;
+
 
     /**
      * Initialise GLFW & window for rendering
@@ -63,11 +69,44 @@ public class Main {
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
             if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE ) // close window when esc key is released
                 glfwSetWindowShouldClose(window, true);
-            if (key == GLFW_KEY_W) { // view in wireframe mode whilst W is pressed
+            if (key == GLFW_KEY_F) { // view in wireframe mode whilst F is pressed
                 if ( action == GLFW_PRESS ) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                 else if ( action == GLFW_RELEASE ) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             }
-            // arrows used to move camera (in processArrowsInput() method)
+            // AWSD used to move camera (in processArrowsInput() method)
+        });
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // use mouse
+        glfwSetCursorPosCallback(window, (long window, double xpos, double ypos) -> {
+            if (firstMouse) {
+                lastX = xpos;
+                lastY = ypos;
+                firstMouse = false;
+            }
+            double xoffset = (xpos - lastX);
+            double yoffset = (lastY - ypos); // reversed since y-coord range from bottom to top
+            lastX = xpos;
+            lastY = ypos;
+
+            float sensitivity = 0.1f;
+            xoffset *= sensitivity;
+            yoffset *= sensitivity;
+
+            yaw   += xoffset;
+            pitch += yoffset;
+
+            if(pitch > 89.0f) pitch =  89.0; // constraint pitch
+            if(pitch < -89.0f) pitch = -89.0;
+
+            Vector3f direction = new Vector3f();
+            direction.setComponent(0, (float) (Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch))));
+            direction.setComponent(1, (float) Math.toRadians(pitch));
+            direction.setComponent(2, (float) (Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch))));
+            camera.setCameraFront(direction.normalize());
+        });
+        glfwSetScrollCallback(window, (long window, double xoffset, double yoffset) -> { // 'zoom' illusion when scroll w/mouse
+            fov -= yoffset;
+            if (fov < 1.0) fov = 1.0;
+            if (fov > 45.0) fov = 45.0;
         });
 
         // make window visible
@@ -137,16 +176,8 @@ public class Main {
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
 
         // --- link vertex attributes ---
-        /*
-        specify how openGL should interpret the vertex data
-        arguments to glVertexAttribPointer():
-              - pass in data to vertex attrib at location 0
-              - size of vertex attrib
-              - type of the data
-              - specifies if we want the data to be normalized
-              - the stride
-              - offset of where the position data begins in the buffer.
-         */
+
+        // specify how openGL should interpret the vertex data
         // position attrib (at location 0)
         // stride is 5*4 for the floats (1 float -> 4 bytes) (x,y,z)(s,t)
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 5*4, 0);
@@ -170,11 +201,6 @@ public class Main {
         Texture texture2 = new Texture("./resources/awesomeface.png", true);
         shaderProgram.uploadInt("texture1", 0); // set texture unit to which each shader sampler belongs to
         shaderProgram.uploadInt("texture2", 1);
-
-        // create & upload projection matrix
-        Matrix4f projection = new Matrix4f();
-        projection.setPerspective((float) Math.PI / 4, (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
-        shaderProgram.uploadMatrix4f(projection, "proj_m");
 
         // multiple cubes
         Vector3f[] cubePositions = {
@@ -223,6 +249,11 @@ public class Main {
             Matrix4f view = camera.calcLookAt();
             shaderProgram.uploadMatrix4f(view, "view_m");
 
+            // create & upload projection matrix
+            Matrix4f projection = new Matrix4f();
+            projection.setPerspective((float) Math.toRadians(fov), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
+            shaderProgram.uploadMatrix4f(projection, "proj_m");
+
             for(int i = 0; i < cubePositions.length; i++){
                 Matrix4f model = new Matrix4f();  // calc model matrix
                 model.translate(cubePositions[i]);
@@ -240,21 +271,21 @@ public class Main {
     }
 
     /**
-     * Called in render loop to contnually process input from keyboard arrows in each frame.
+     * Called in render loop to contnually process input from keyboard AWSD keys in each frame.
      */
     private void processArrowsInput(){
-        // camera movement using arrows
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-            // UP -> cameraPos += cameraFront * cameraSpeed
+        // camera movement using AWSD
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            // W -> cameraPos += cameraFront * cameraSpeed
             camera.setCameraPos(camera.getCameraPos().add(camera.getCameraFront().mul(cameraSpeed)));
-        }if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-            // DOWN -> cameraPos -= cameraFront * cameraSpeed
+        }if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            // S -> cameraPos -= cameraFront * cameraSpeed
             camera.setCameraPos(camera.getCameraPos().sub(camera.getCameraFront().mul(cameraSpeed)));
-        }if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-            // LEFT -> cameraPos -= normalize(cross(cameraFront, cameraUp)) * cameraSpeed
+        }if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            // A -> cameraPos -= normalize(cross(cameraFront, cameraUp)) * cameraSpeed
             camera.setCameraPos(camera.getCameraPos().sub(camera.getCameraFront().cross(camera.getCameraUp()).normalize().mul(cameraSpeed)));
-        }if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-            // RIGHT -> cameraPos += normalize(cross(cameraFront, cameraUp)) * cameraSpeed
+        }if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            // D -> cameraPos += normalize(cross(cameraFront, cameraUp)) * cameraSpeed
             camera.setCameraPos(camera.getCameraPos().add(camera.getCameraFront().cross(camera.getCameraUp()).normalize().mul(cameraSpeed)));
         }
     }
