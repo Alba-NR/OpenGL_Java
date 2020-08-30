@@ -1,5 +1,6 @@
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 import java.nio.FloatBuffer;
@@ -62,20 +63,39 @@ public class ShaderProgram {
     /**
      * Sets value of the specified integer uniform variable in program to the
      * new, given value
-     * @param name name of integer uniform variable to change value of
+     * @param target target of integer uniform variable to change value of
      * @param value new integer value
      */
-    void uploadInt(String name, int value){
-        glUniform1i(glGetUniformLocation(id, name), value);
+    void uploadInt(String target, int value){
+        glUniform1i(glGetUniformLocation(id, target), value);
     }
     /**
      * Sets value of the specified float uniform variable in program to the
      * new, given value
-     * @param name name of float uniform variable to change value of
+     * @param target target of float uniform variable to change value of
      * @param value new float value
      */
-    void uploadFloat(String name, float value){
-        glUniform1f(glGetUniformLocation(id, name), value);
+    void uploadFloat(String target, float value){
+        glUniform1f(glGetUniformLocation(id, target), value);
+    }
+
+    /**
+     * Upload a 3-component vector (v0, v1, v2) to 'target' shader uniform variable
+     * @param v0 1st component of vector
+     * @param v1 2nd component of vector
+     * @param v2 3rd component of vector
+     * @param target name of uniform variable to which to upload vector
+     */
+    void uploadVec3f(String target, float v0, float v1, float v2){
+        glUniform3f(glGetUniformLocation(id, target), v0, v1, v2);   // set vector as uniform value
+    }
+    /**
+     * Upload a 3-component vector 'vector' to 'target' shader uniform variable
+     * @param vector vector to upload
+     * @param target name of uniform variable to which to upload vector
+     */
+    void uploadVec3f(String target, Vector3f vector){
+        glUniform3f(glGetUniformLocation(id, target), vector.x, vector.y, vector.z);   // set vector as uniform value
     }
 
     /**
@@ -83,8 +103,8 @@ public class ShaderProgram {
      * @param m {@link Matrix3f} to upload (i.e. to set 'target' to)
      * @param target name of uniform variable to which to upload matrix
      */
-    void uploadMatrix3f(Matrix3f m, String target) {
-        int targetLocation = glGetUniformLocation(id, target);   // get location of transform matrix uniform
+    void uploadMatrix3f(String target, Matrix3f m) {
+        int targetLocation = glGetUniformLocation(id, target);   // get location of target uniform
         FloatBuffer buffer = BufferUtils.createFloatBuffer(9);
         m.get(buffer);  // store matrix in column-major order into buffer
         glUniformMatrix3fv(targetLocation, false, buffer);   // set matrix as uniform value
@@ -94,8 +114,8 @@ public class ShaderProgram {
      * @param m {@link Matrix4f} to upload (i.e. to set 'target' to)
      * @param target name of uniform variable to which to upload matrix
      */
-    void uploadMatrix4f(Matrix4f m, String target) {
-        int targetLocation = glGetUniformLocation(id, target);   // get location of transform matrix uniform
+    void uploadMatrix4f(String target, Matrix4f m) {
+        int targetLocation = glGetUniformLocation(id, target);   // get location of target uniform
         FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
         m.get(buffer);  // store matrix in column-major order into buffer
         glUniformMatrix4fv(targetLocation, false, buffer);   // set matrix as uniform value

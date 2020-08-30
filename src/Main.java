@@ -17,9 +17,11 @@ import static org.lwjgl.opengl.GL30.*;
 public class Main {
 
     private long window;        // window handle
-    private ShaderProgram shaderProgram;  // shader prog to use
-    private int vao;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
+    private ShaderProgram cubeShaderProgram;  // shader prog to use for cubes
+    private ShaderProgram lightShaderProgram;  // shader prog to use for light cube
+    private int cubeVAO;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
     private int vbo;            // VBO obj -- to manage vertex data in the GPU's mem
+    private int lightVAO;       // vao for light sources
     //note: buffers, shaderProg, texture & camera as fields atm to be able to use them in dif methods
 
     final private int SCR_WIDTH = 1200;  // screen size settings
@@ -94,13 +96,19 @@ public class Main {
 
         // --- set up shaders ---
 
-        // create vertex shader
-        Shader vertexShader = new Shader(GL_VERTEX_SHADER, "./resources/vertex_shader.glsl");
-        // create fragment shader
-        Shader fragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/fragment_shader.glsl");
+        // create cube vertex shader
+        Shader cubeVertexShader = new Shader(GL_VERTEX_SHADER, "./resources/cube_vertex_shader.glsl");
+        // create cube fragment shader
+        Shader cubeFragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/cube_fragment_shader.glsl");
+        // create cube shader program
+        cubeShaderProgram = new ShaderProgram(cubeVertexShader, cubeFragmentShader);
 
-        // create shader program
-        shaderProgram = new ShaderProgram(vertexShader, fragmentShader);
+        // create light cube vertex shader
+        Shader lightVertexShader = new Shader(GL_VERTEX_SHADER, "./resources/lightSource_vertex_shader.glsl");
+        // create light cube fragment shader
+        Shader lightFragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/lightSource_fragment_shader.glsl");
+        // create light cube shader program
+        lightShaderProgram = new ShaderProgram(lightVertexShader, lightFragmentShader);
 
 
         // --- set up vertex data & buffers ---
@@ -149,23 +157,33 @@ public class Main {
                 -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
         };
 
-        vao = glGenVertexArrays();              // create vertex array (VAO- vertex array obj)
+        // --- config cube's VAO & VBO ---
+        cubeVAO = glGenVertexArrays();          // create vertex array (VAO- vertex array obj)
         vbo = glGenBuffers();                   // create an int buffer & return int ID (create VBO- vertex buffer obj)
-        glBindVertexArray(vao);                 // bind vertex array (VAO)
+        glBindVertexArray(cubeVAO);             // bind vertex array (VAO)
         glBindBuffer(GL_ARRAY_BUFFER, vbo);     // bind buffer (VBO)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
 
         // --- link vertex attributes ---
 
         // specify how openGL should interpret the vertex data
-        // position attrib (at location 0)
-        // stride is 5*4 for the floats (1 float -> 4 bytes) (x,y,z)(s,t)
+        // position attrib (at location 0) stride is 5*4 for the floats (1 float -> 4 bytes) (x,y,z)(s,t)
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 5*4, 0);
         glEnableVertexAttribArray(0);
-        // texel attrib
+        // texel attrib (loaction 1)
         glVertexAttribPointer(1, 2, GL_FLOAT, false, 5*4, 3*4);
         glEnableVertexAttribArray(1);
 
+        // --- config light's VAO & VBO (vbo same bc light is a cube atm) ---
+        // Note: rendering a cube to repr the light source, to explicitly see it's position in the scene
+        lightVAO = glGenVertexArrays();
+        glBindVertexArray(lightVAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 5*4, 0); // TODO not sure about the stride here...
+        glEnableVertexAttribArray(0);
+
+        // --- unbind...
         glBindBuffer(GL_ARRAY_BUFFER, 0);    // unbind VBO
         glBindVertexArray(0);                       // unbind VAO
     }
@@ -174,13 +192,20 @@ public class Main {
      * Rendering loop
      */
     public void renderLoop(){
-        shaderProgram.use();    // set shader program to use
+        cubeShaderProgram.use();    // set shader program to use
 
         // textures
-        Texture texture1 = new Texture("./resources/container.jpg", false); // create texture objects
-        Texture texture2 = new Texture("./resources/awesomeface.png", true);
-        shaderProgram.uploadInt("texture1", 0); // set texture unit to which each shader sampler belongs to
-        shaderProgram.uploadInt("texture2", 1);
+        Texture texture = new Texture("./resources/container.jpg", false); // create texture objects
+        cubeShaderProgram.uploadInt("texture", 0); // set texture unit to which each shader sampler belongs to
+
+        // set-up light
+        cubeShaderProgram.uploadVec3f("objectColor", 1.0f, 0.5f, 0.31f);
+        cubeShaderProgram.uploadVec3f("lightColor",  1.0f, 1.0f, 1.0f);
+
+        Vector3f lightPos = new Vector3f(1.2f, 1.0f, 2.0f); // light position
+        Matrix4f lightModel = new Matrix4f();
+        lightModel.translate(lightPos);
+        lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube
 
         // multiple cubes
         Vector3f[] cubePositions = {
@@ -215,33 +240,44 @@ public class Main {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen's color buffer & depth buffer
 
             // --- render commands ---
+            cubeShaderProgram.use();    // use cube shader
+            cubeShaderProgram.uploadVec3f("objectColor", 1.0f, 0.5f, 0.31f);
+            cubeShaderProgram.uploadVec3f("lightColor",  1.0f, 1.0f, 1.0f);
 
             // textures
             glActiveTexture(GL_TEXTURE0);       // bind 1st texture to texture unit 0
-            glBindTexture(GL_TEXTURE_2D, texture1.getHandle());
-            glActiveTexture(GL_TEXTURE1);       // bind 2nd texture to texture unit 1
-            glBindTexture(GL_TEXTURE_2D, texture2.getHandle());
+            glBindTexture(GL_TEXTURE_2D, texture.getHandle());
 
             // draw/render
-            glBindVertexArray(vao);     // bind vertex attrib buffer
+            glBindVertexArray(cubeVAO);     // bind vertex attrib buffer
 
              // calc view matrix
             Matrix4f view = camera.calcLookAt();
-            shaderProgram.uploadMatrix4f(view, "view_m");
+            cubeShaderProgram.uploadMatrix4f("view_m", view);
 
             // create & upload projection matrix
             Matrix4f projection = new Matrix4f();
             projection.setPerspective((float) Math.toRadians(camera.getFOV()), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
-            shaderProgram.uploadMatrix4f(projection, "proj_m");
+            cubeShaderProgram.uploadMatrix4f("proj_m", projection);
 
             for(int i = 0; i < cubePositions.length; i++){
                 Matrix4f model = new Matrix4f();  // calc model matrix
                 model.translate(cubePositions[i]);
                 model.rotate((float) Math.toRadians(20.0f * i), (new Vector3f(1.0f, 0.3f, 0.5f)).normalize());
-                shaderProgram.uploadMatrix4f(model, "model_m");
+                cubeShaderProgram.uploadMatrix4f("model_m", model);
 
                 glDrawArrays(GL_TRIANGLES, 0, 36);  // draw it (as triangles)
             }
+            glBindVertexArray(0);       // remove the binding
+
+            // render light cube object
+            lightShaderProgram.use();
+            lightShaderProgram.uploadMatrix4f("model_m", lightModel);
+            lightShaderProgram.uploadMatrix4f("view_m", view);
+            lightShaderProgram.uploadMatrix4f("proj_m", projection);
+
+            glBindVertexArray(lightVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
             glBindVertexArray(0);       // remove the binding
 
             // --- check events & swap buffers ---
@@ -271,9 +307,11 @@ public class Main {
         glfwDestroyWindow(window);
 
         // de-allocate all resources
-        glDeleteVertexArrays(vao);
+        glDeleteVertexArrays(cubeVAO);
+        glDeleteVertexArrays(lightVAO);
         glDeleteBuffers(vbo);
-        shaderProgram.delete();
+        cubeShaderProgram.delete();
+        lightShaderProgram.delete();
 
         // clean/delete all other GLFW's resources
         glfwTerminate();
