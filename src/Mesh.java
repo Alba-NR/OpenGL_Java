@@ -47,7 +47,7 @@ public abstract class Mesh {
      * @param vertNormals array of normal vectors
      * @param textureCoordinates array specifying tex coordinates
      */
-    protected void loadDataOntoGPU( float[] vertPositions, int[] indices, float[] vertNormals, float[] textureCoordinates ) {
+    private void loadDataOntoGPU(float[] vertPositions, int[] indices, float[] vertNormals, float[] textureCoordinates) {
 
         // --- load vertex positions ---
         vaoHandle = glGenVertexArrays(); // create VAO obj

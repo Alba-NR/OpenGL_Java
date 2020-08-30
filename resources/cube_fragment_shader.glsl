@@ -32,6 +32,6 @@ void main()
 
     vec3 result = (ambient + diffuse + specular) * objectColor;
     // mixture of texture & obj colour w/lighting (80% 1st input colour, 20% 2nd input colour):
-    FragColor = mix(texture(texture, TexCoord), vec4(result, 1.0), 1.0f);
+    FragColor = mix(texture(texture, TexCoord), vec4(result, 1.0), 0.5f);
 }
 

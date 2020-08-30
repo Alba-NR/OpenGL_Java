@@ -111,13 +111,13 @@ public class Main {
         // --- set up vertex data & buffers, config cube's VAO & VBO and link vertex attributes USING CUBEMESH---
 
         cubeMesh = new CubeMesh();
-        cubeShaderProgram.bindDataToShader("aPos", cubeMesh.getVertexVBOHandle(), 3);
-        cubeShaderProgram.bindDataToShader("aNormal", cubeMesh.getNormalHandle(), 3);
-        cubeShaderProgram.bindDataToShader("aTexCoord", cubeMesh.getTexHandle(), 2);
+        cubeShaderProgram.bindDataToShader(0, cubeMesh.getVertexVBOHandle(), 3);
+        cubeShaderProgram.bindDataToShader(1, cubeMesh.getNormalHandle(), 3);
+        cubeShaderProgram.bindDataToShader(2, cubeMesh.getTexHandle(), 2);
 
         // --- config light's VAO & VBO (vbo same bc light is a cube atm) ---
         // Note: rendering a cube to repr the light source, to explicitly see it's position in the scene
-        lightShaderProgram.bindDataToShader("aPos", cubeMesh.getVertexVBOHandle(), 3);
+        lightShaderProgram.bindDataToShader(0, cubeMesh.getVertexVBOHandle(), 3);
 
         // --- unbind...
         glBindBuffer(GL_ARRAY_BUFFER, 0);    // unbind VBO
@@ -184,7 +184,7 @@ public class Main {
             cubeShaderProgram.uploadVec3f("viewPos", camera.getCameraPos());
 
             // textures
-            glActiveTexture(GL_TEXTURE0);       // bind 1st texture to texture unit 0
+            glActiveTexture(GL_TEXTURE0);       // bind texture to texture unit 0
             glBindTexture(GL_TEXTURE_2D, texture.getHandle());
 
             // draw/render
