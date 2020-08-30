@@ -130,7 +130,6 @@ public class ShaderProgram {
     public void bindDataToShader(String target, int arrayBufferHandle, int attribSize) {
         glBindBuffer(GL_ARRAY_BUFFER, arrayBufferHandle); // bind given buffer
         int location = glGetAttribLocation(id, target);
-        System.out.println(location);
 
         // if attrib does not exist, location will be -1 -- shouldn't use it
         if (location != -1) {
