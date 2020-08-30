@@ -19,10 +19,7 @@ public class Main {
     private long window;        // window handle
     private ShaderProgram cubeShaderProgram;  // shader prog to use for cubes
     private ShaderProgram lightShaderProgram;  // shader prog to use for light cube
-    private int cubeVAO;            // VAO obj  -- to manage vertex attributes (configs, assoc VBOs...)
-    private int vbo;            // VBO obj -- to manage vertex data in the GPU's mem
-    private int lightVAO;       // vao for light sources
-    //note: buffers, shaderProg, texture & camera as fields atm to be able to use them in dif methods
+    private CubeMesh cubeMesh;  // cube mesh
 
     final private int SCR_WIDTH = 1200;  // screen size settings
     final private int SCR_HEIGHT = 900;
@@ -111,77 +108,16 @@ public class Main {
         lightShaderProgram = new ShaderProgram(lightVertexShader, lightFragmentShader);
 
 
-        // --- set up vertex data & buffers ---
+        // --- set up vertex data & buffers, config cube's VAO & VBO and link vertex attributes USING CUBEMESH---
 
-        float[] vertices = {
-                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-                0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-                0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-                0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-                0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-                -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-                -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-                0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-                0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-                0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-                -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-                -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-                0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-                0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-                -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-                -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-        };
-
-        // --- config cube's VAO & VBO ---
-        cubeVAO = glGenVertexArrays();          // create vertex array (VAO- vertex array obj)
-        vbo = glGenBuffers();                   // create an int buffer & return int ID (create VBO- vertex buffer obj)
-        glBindVertexArray(cubeVAO);             // bind vertex array (VAO)
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);     // bind buffer (VBO)
-        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
-
-        // --- link vertex attributes ---
-
-        // specify how openGL should interpret the vertex data
-        // position attrib (at location 0) stride is 5*4 for the floats (1 float -> 4 bytes) (x,y,z)(s,t)
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 5*4, 0);
-        glEnableVertexAttribArray(0);
-        // texel attrib (loaction 1)
-        glVertexAttribPointer(1, 2, GL_FLOAT, false, 5*4, 3*4);
-        glEnableVertexAttribArray(1);
+        cubeMesh = new CubeMesh();
+        cubeShaderProgram.bindDataToShader("aPos", cubeMesh.getVertexVBOHandle(), 3);
+        cubeShaderProgram.bindDataToShader("aNormal", cubeMesh.getNormalHandle(), 3);
+        cubeShaderProgram.bindDataToShader("aTexCoord", cubeMesh.getTexHandle(), 2);
 
         // --- config light's VAO & VBO (vbo same bc light is a cube atm) ---
         // Note: rendering a cube to repr the light source, to explicitly see it's position in the scene
-        lightVAO = glGenVertexArrays();
-        glBindVertexArray(lightVAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 5*4, 0); // TODO not sure about the stride here...
-        glEnableVertexAttribArray(0);
+        lightShaderProgram.bindDataToShader("aPos", cubeMesh.getVertexVBOHandle(), 3);
 
         // --- unbind...
         glBindBuffer(GL_ARRAY_BUFFER, 0);    // unbind VBO
@@ -203,7 +139,9 @@ public class Main {
         cubeShaderProgram.uploadVec3f("lightColor",  1.0f, 1.0f, 1.0f);
 
         Vector3f lightPos = new Vector3f(1.2f, 1.0f, 2.0f); // light position
-        Matrix4f lightModel = new Matrix4f();
+        cubeShaderProgram.uploadVec3f("lightPos",  lightPos);
+
+        Matrix4f lightModel = new Matrix4f();   // calc model matrix for light cube
         lightModel.translate(lightPos);
         lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube
 
@@ -249,7 +187,7 @@ public class Main {
             glBindTexture(GL_TEXTURE_2D, texture.getHandle());
 
             // draw/render
-            glBindVertexArray(cubeVAO);     // bind vertex attrib buffer
+            glBindVertexArray(cubeMesh.getVAOHandle());     // bind vertex attrib buffer
 
              // calc view matrix
             Matrix4f view = camera.calcLookAt();
@@ -266,18 +204,19 @@ public class Main {
                 model.rotate((float) Math.toRadians(20.0f * i), (new Vector3f(1.0f, 0.3f, 0.5f)).normalize());
                 cubeShaderProgram.uploadMatrix4f("model_m", model);
 
-                glDrawArrays(GL_TRIANGLES, 0, 36);  // draw it (as triangles)
+                glDrawElements(GL_TRIANGLES, cubeMesh.getNumOfTriangles(), GL_UNSIGNED_INT, 0); // draw it as triangles
             }
             glBindVertexArray(0);       // remove the binding
 
             // render light cube object
+            glBindVertexArray(cubeMesh.getVAOHandle());
             lightShaderProgram.use();
             lightShaderProgram.uploadMatrix4f("model_m", lightModel);
             lightShaderProgram.uploadMatrix4f("view_m", view);
             lightShaderProgram.uploadMatrix4f("proj_m", projection);
 
-            glBindVertexArray(lightVAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            //glDrawArrays(GL_TRIANGLES, 0, cubeMesh.getNumOfTriangles());
+            glDrawElements(GL_TRIANGLES, cubeMesh.getNumOfTriangles(), GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);       // remove the binding
 
             // --- check events & swap buffers ---
@@ -307,9 +246,7 @@ public class Main {
         glfwDestroyWindow(window);
 
         // de-allocate all resources
-        glDeleteVertexArrays(cubeVAO);
-        glDeleteVertexArrays(lightVAO);
-        glDeleteBuffers(vbo);
+        cubeMesh.deallocateResources();
         cubeShaderProgram.delete();
         lightShaderProgram.delete();
 

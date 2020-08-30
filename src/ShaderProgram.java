@@ -121,6 +121,29 @@ public class ShaderProgram {
         glUniformMatrix4fv(targetLocation, false, buffer);   // set matrix as uniform value
     }
 
+    /**
+     * Tell shader where it can find attributes
+     * @param target shader variable to which to bind given data
+     * @param arrayBufferHandle	handle to data (vertex positions, normals or texture coordinates)
+     * @param attribSize "dimensionality" of data/attrib (vertex & normals = 3, texture coords = 2)
+     */
+    public void bindDataToShader(String target, int arrayBufferHandle, int attribSize) {
+        glBindBuffer(GL_ARRAY_BUFFER, arrayBufferHandle); // bind given buffer
+        int location = glGetAttribLocation(id, target);
+        System.out.println(location);
+
+        // if attrib does not exist, location will be -1 -- shouldn't use it
+        if (location != -1) {
+            // specify how openGL should interpret the data
+            glVertexAttribPointer(location, attribSize, GL_FLOAT, false, 0, 0);
+            // enable attrib variable
+            glEnableVertexAttribArray(location);
+
+        } else {
+            System.out.println("NO " + target);
+        }
+    }
+
     public int getHandle(){
         return id;
     }
