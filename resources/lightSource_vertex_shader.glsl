@@ -1,4 +1,5 @@
 #version 330 core
+
 layout (location = 0) in vec3 oc_pos;
 
 uniform mat4 mvp_m; // model-view-projection matrix

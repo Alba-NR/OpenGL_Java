@@ -128,6 +128,7 @@ public class Main {
      * Rendering loop
      */
     public void renderLoop(){
+        Vector3f bgColour = new Vector3f(0.2f, 0.2f, 0.2f);
         cubeShaderProgram.use();    // set shader program to use
 
         // textures
@@ -135,8 +136,9 @@ public class Main {
         cubeShaderProgram.uploadInt("texture", 0); // set texture unit to which each shader sampler belongs to
 
         // set-up light
-        cubeShaderProgram.uploadVec3f("light.colour",   1.0f, 1.0f, 1.0f);
-        cubeShaderProgram.uploadFloat("light.intensity",   25);
+        Vector3f lightColour = new Vector3f(1.0f, 0.0f, 0.0f);
+        cubeShaderProgram.uploadVec3f("light.colour",  lightColour);
+        cubeShaderProgram.uploadFloat("light.intensity", 25);
         Vector3f lightPos = new Vector3f(1.2f, 1.0f, 2.0f); // light position
         cubeShaderProgram.uploadVec3f("light.position",  lightPos);
 
@@ -145,12 +147,16 @@ public class Main {
         lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube
 
         // set-up cube material
-        cubeShaderProgram.uploadVec3f("material.ambientColour", 0.2f, 0.2f, 0.2f);  // set to same as background colour atm
+        cubeShaderProgram.uploadVec3f("material.ambientColour", bgColour);  // set to same as background colour atm
         cubeShaderProgram.uploadVec3f("material.diffuseColour", 1.0f, 0.5f, 0.31f);
         cubeShaderProgram.uploadVec3f("material.specularColour", 0.5f, 0.5f, 0.5f);
         cubeShaderProgram.uploadFloat("material.K_diff",   5);
         cubeShaderProgram.uploadFloat("material.K_spec",   5);
-        cubeShaderProgram.uploadFloat("material.shininess", 32.0f);
+        cubeShaderProgram.uploadFloat("material.shininess", 64.0f); // 32
+
+        // (finish setting-up light -- pass light colour to light soure fragment shader)
+        lightShaderProgram.use();
+        lightShaderProgram.uploadVec3f("lightColour",  lightColour);
 
         // multiple cubes
         Vector3f[] cubePositions = {
@@ -175,13 +181,12 @@ public class Main {
             float currentFrameT = (float) glfwGetTime();
             deltaTime = currentFrameT - lastFrameT;
             lastFrameT = currentFrameT;
-            camera.setCameraSpeed(5.0f * deltaTime);
 
             // --- process keyboard arrows input --
-            processAWSDInput();
+            processAWSDInput(deltaTime);
 
             // --- clear screen ---
-            glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // specify colour to clear to
+            glClearColor(bgColour.x, bgColour.y, bgColour.z, 1.0f); // specify colour to clear to
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen's color buffer & depth buffer
 
             // --- render commands ---
@@ -241,12 +246,14 @@ public class Main {
     /**
      * Called in render loop to continually process input from keyboard AWSD keys in each frame.
      */
-    private void processAWSDInput(){
+    private void processAWSDInput(float deltaTime){
         // camera movement using AWSD
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.FORWARD);
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.BACKWARD);
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.LEFT);
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)camera.processKeyboardInput(CameraMovement.RIGHT);
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.FORWARD, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.BACKWARD, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.LEFT, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.RIGHT, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.DOWNWARD, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.UPWARD, deltaTime);
     }
 
     /**

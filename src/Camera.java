@@ -5,7 +5,9 @@ enum CameraMovement{
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    UPWARD,
+    DOWNWARD
 }
 
 public class Camera {
@@ -15,15 +17,15 @@ public class Camera {
 
     private double yaw = -90.0;     // like azimuthal angle for 'lens' of camera as if centre of camera at O (spherical polar)
     private double pitch = 0.0;     // like polar angle ...
-    private float cameraSpeed =  2.5f;
-    private float sensitivity =  0.1f;
+    private float cameraSpeed =  2.0f; // 1.0f for more 'cinematic' movement
+    private float sensitivity =  0.08f; // 0.05f for more 'cinematic' movement
     private double fov =  45.0;
 
 
     Camera(Vector3f cameraPos, Vector3f cameraFront, Vector3f up){
         this.cameraPos = cameraPos;
-        this.cameraFront = cameraFront;
-        this.cameraUp = up;
+        this.cameraFront = cameraFront.normalize();
+        this.cameraUp = up.normalize();
     }
 
     Camera(){
@@ -49,19 +51,26 @@ public class Camera {
      * Using CameraMovement to abstract from window object.
      * @param direction direction of movement of camera
      */
-    void processKeyboardInput(CameraMovement direction){
+    void processKeyboardInput(CameraMovement direction, float deltaTime){
+        float velocity = cameraSpeed * deltaTime;
         if (direction == CameraMovement.FORWARD) {
-            // FORWWARD -> cameraPos += cameraFront * cameraSpeed
-            cameraPos.add(getCameraFront().mul(cameraSpeed));
+            // FORWWARD -> cameraPos += cameraFront * velocity
+            cameraPos.add(getCameraFront().mul(velocity));
         }if (direction == CameraMovement.BACKWARD) {
-            // BACKWARD -> cameraPos -= cameraFront * cameraSpeed
-            cameraPos.sub(getCameraFront().mul(cameraSpeed));
+            // BACKWARD -> cameraPos -= cameraFront * velocity
+            cameraPos.sub(getCameraFront().mul(velocity));
         }if (direction == CameraMovement.LEFT) {
-            // LEFT -> cameraPos -= normalize(cross(cameraFront, cameraUp)) * cameraSpeed
-            cameraPos.sub(getCameraFront().cross(cameraUp).normalize().mul(cameraSpeed));
+            // LEFT -> cameraPos -= normalize(cross(cameraFront, cameraUp)) * velocity
+            cameraPos.sub(getCameraFront().cross(cameraUp).normalize().mul(velocity));
         }if (direction == CameraMovement.RIGHT) {
-            // RIGHT -> cameraPos += normalize(cross(cameraFront, cameraUp)) * cameraSpeed
-            cameraPos.add(getCameraFront().cross(cameraUp).normalize().mul(cameraSpeed));
+            // RIGHT -> cameraPos += normalize(cross(cameraFront, cameraUp)) * velocity
+            cameraPos.add(getCameraFront().cross(cameraUp).normalize().mul(velocity));
+        }if (direction == CameraMovement.UPWARD) {
+            // UPWARD -> cameraPos += cameraUp * velocity
+            cameraPos.add(getCameraUp().mul(velocity));
+        }if (direction == CameraMovement.DOWNWARD) {
+            // DOWNWARD -> cameraPos -= cameraUp * velocity
+            cameraPos.sub(getCameraUp().mul(velocity));
         }
     }
 
