@@ -1,11 +1,9 @@
 #version 330 core
-layout (location = 0) in vec3 aPos;
+layout (location = 0) in vec3 oc_pos;
 
-uniform mat4 model_m;   // model matrix
-uniform mat4 view_m;    // view matrix
-uniform mat4 proj_m;    // projection matrix
+uniform mat4 mvp_m; // model-view-projection matrix
 
 void main()
 {
-    gl_Position = proj_m * view_m * model_m * vec4(aPos, 1.0);  // also used as output of shader
+    gl_Position = mvp_m * vec4(oc_pos, 1.0);  // also used as output of shader
 }

@@ -135,15 +135,22 @@ public class Main {
         cubeShaderProgram.uploadInt("texture", 0); // set texture unit to which each shader sampler belongs to
 
         // set-up light
-        cubeShaderProgram.uploadVec3f("objectColor", 1.0f, 0.5f, 0.31f);
-        cubeShaderProgram.uploadVec3f("lightColor",  1.0f, 1.0f, 1.0f);
-
+        cubeShaderProgram.uploadVec3f("light.colour",   1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadFloat("light.intensity",   25);
         Vector3f lightPos = new Vector3f(1.2f, 1.0f, 2.0f); // light position
-        cubeShaderProgram.uploadVec3f("lightPos",  lightPos);
+        cubeShaderProgram.uploadVec3f("light.position",  lightPos);
 
         Matrix4f lightModel = new Matrix4f();   // calc model matrix for light cube
         lightModel.translate(lightPos);
         lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube
+
+        // set-up cube material
+        cubeShaderProgram.uploadVec3f("material.ambientColour", 0.2f, 0.2f, 0.2f);  // set to same as background colour atm
+        cubeShaderProgram.uploadVec3f("material.diffuseColour", 1.0f, 0.5f, 0.31f);
+        cubeShaderProgram.uploadVec3f("material.specularColour", 0.5f, 0.5f, 0.5f);
+        cubeShaderProgram.uploadFloat("material.K_diff",   5);
+        cubeShaderProgram.uploadFloat("material.K_spec",   5);
+        cubeShaderProgram.uploadFloat("material.shininess", 32.0f);
 
         // multiple cubes
         Vector3f[] cubePositions = {
@@ -179,9 +186,7 @@ public class Main {
 
             // --- render commands ---
             cubeShaderProgram.use();    // use cube shader
-            cubeShaderProgram.uploadVec3f("objectColor", 1.0f, 0.5f, 0.31f);
-            cubeShaderProgram.uploadVec3f("lightColor",  1.0f, 1.0f, 1.0f);
-            cubeShaderProgram.uploadVec3f("viewPos", camera.getCameraPos());
+            cubeShaderProgram.uploadVec3f("wc_cameraPos", camera.getCameraPos());
 
             // textures
             glActiveTexture(GL_TEXTURE0);       // bind texture to texture unit 0
@@ -192,18 +197,24 @@ public class Main {
 
              // calc view matrix
             Matrix4f view = camera.calcLookAt();
-            cubeShaderProgram.uploadMatrix4f("view_m", view);
 
             // create & upload projection matrix
             Matrix4f projection = new Matrix4f();
             projection.setPerspective((float) Math.toRadians(camera.getFOV()), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
-            cubeShaderProgram.uploadMatrix4f("proj_m", projection);
 
             for(int i = 0; i < cubePositions.length; i++){
                 Matrix4f model = new Matrix4f();  // calc model matrix
                 model.translate(cubePositions[i]);
                 model.rotate((float) Math.toRadians(20.0f * i), (new Vector3f(1.0f, 0.3f, 0.5f)).normalize());
                 cubeShaderProgram.uploadMatrix4f("model_m", model);
+
+                Matrix4f mvp =  new Matrix4f(projection);   // calc MVP matrix (once in CPU rather than per fragment in GPU...)
+                mvp.mul(view).mul(model);
+                cubeShaderProgram.uploadMatrix4f("mvp_m", mvp);
+
+                Matrix4f normalM = new Matrix4f();  // calc matrix to tranform normal vect from oc to wc
+                model.invert(normalM).transpose();
+                cubeShaderProgram.uploadMatrix4f("normal_m", normalM);
 
                 glDrawElements(GL_TRIANGLES, cubeMesh.getNumOfTriangles(), GL_UNSIGNED_INT, 0); // draw it as triangles
             }
@@ -212,9 +223,10 @@ public class Main {
             // render light cube object
             glBindVertexArray(cubeMesh.getVAOHandle());
             lightShaderProgram.use();
-            lightShaderProgram.uploadMatrix4f("model_m", lightModel);
-            lightShaderProgram.uploadMatrix4f("view_m", view);
-            lightShaderProgram.uploadMatrix4f("proj_m", projection);
+            Matrix4f mvp =  new Matrix4f(projection);   // calc MVP matrix
+            mvp.mul(view).mul(lightModel);
+            lightShaderProgram.uploadMatrix4f("mvp_m", mvp);
+
 
             //glDrawArrays(GL_TRIANGLES, 0, cubeMesh.getNumOfTriangles());
             glDrawElements(GL_TRIANGLES, cubeMesh.getNumOfTriangles(), GL_UNSIGNED_INT, 0);
