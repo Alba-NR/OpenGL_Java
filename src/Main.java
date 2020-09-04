@@ -131,12 +131,8 @@ public class Main {
         Vector3f bgColour = new Vector3f(0.2f, 0.2f, 0.2f);
         cubeShaderProgram.use();    // set shader program to use
 
-        // textures
-        Texture texture = new Texture("./resources/container.jpg", false); // create texture objects
-        cubeShaderProgram.uploadInt("texture", 0); // set texture unit to which each shader sampler belongs to
-
         // set-up light
-        Vector3f lightColour = new Vector3f(1.0f, 0.0f, 0.0f);
+        Vector3f lightColour = new Vector3f(1.0f, 1.0f, 1.0f);
         cubeShaderProgram.uploadVec3f("light.colour",  lightColour);
         cubeShaderProgram.uploadFloat("light.intensity", 25);
         Vector3f lightPos = new Vector3f(1.2f, 1.0f, 2.0f); // light position
@@ -147,12 +143,12 @@ public class Main {
         lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube
 
         // set-up cube material
-        cubeShaderProgram.uploadVec3f("material.ambientColour", bgColour);  // set to same as background colour atm
-        cubeShaderProgram.uploadVec3f("material.diffuseColour", 1.0f, 0.5f, 0.31f);
+        Texture diffuseMap = new Texture("./resources/container2.png", false);
+        cubeShaderProgram.uploadInt("material.diffuseColour", 0); // diffuse map is at texture unit 0
         cubeShaderProgram.uploadVec3f("material.specularColour", 0.5f, 0.5f, 0.5f);
         cubeShaderProgram.uploadFloat("material.K_diff",   5);
         cubeShaderProgram.uploadFloat("material.K_spec",   5);
-        cubeShaderProgram.uploadFloat("material.shininess", 64.0f); // 32
+        cubeShaderProgram.uploadFloat("material.shininess", 64.0f);
 
         // (finish setting-up light -- pass light colour to light soure fragment shader)
         lightShaderProgram.use();
@@ -195,7 +191,7 @@ public class Main {
 
             // textures
             glActiveTexture(GL_TEXTURE0);       // bind texture to texture unit 0
-            glBindTexture(GL_TEXTURE_2D, texture.getHandle());
+            glBindTexture(GL_TEXTURE_2D, diffuseMap.getHandle());
 
             // draw/render
             glBindVertexArray(cubeMesh.getVAOHandle());     // bind vertex attrib buffer
