@@ -1,8 +1,8 @@
 #version 330 core
 
 struct Material {
-    sampler2D diffuseColour;  // diffuse map (for diffuse colour)
-    vec3 specularColour;      // colour of specular reflection
+    sampler2D diffuseColour;    // diffuse map (for diffuse colour)
+    sampler2D specularColour;   // specular map (for specular reflection)
     float K_diff;       // diffuse coeff
     float K_spec;       // specular coeff
     float shininess;    // shininness coeff (for specular reflection)
@@ -33,10 +33,11 @@ void main()
     float distance = length(light.position - wc_fragPos);
     float I = light.intensity / (radians(180) * 4 * pow(distance, 2));
 
-    // get diffuse colour (- ambient colour same as diffuse)
+    // get diffuse & specular colours from textures (the maps...)
     vec3 diffColour = vec3(texture(material.diffuseColour, TexCoord));
+    vec3 specColour = vec3(texture(material.specularColour, TexCoord));
 
-    // ambient reflection
+    // ambient reflection (- ambient colour same as diffuse)
     vec3 I_ambient = I_a * diffColour;
 
     // diffuse reflection
@@ -47,7 +48,7 @@ void main()
     // specular reflection
     vec3 V = normalize(wc_cameraPos - wc_fragPos);
     vec3 R = reflect(-L, N);
-    vec3 I_specular = light.colour * I * material.specularColour * material.K_spec * pow(max(dot(V, R), 0.0), material.shininess);
+    vec3 I_specular = light.colour * I * specColour * material.K_spec * pow(max(dot(V, R), 0.0), material.shininess);
 
     vec3 I_result = I_ambient + I_diffuse + I_specular;
     FragColor = vec4(I_result, 1.0);

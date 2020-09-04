@@ -144,13 +144,14 @@ public class Main {
 
         // set-up cube material
         Texture diffuseMap = new Texture("./resources/container2.png", false);
-        cubeShaderProgram.uploadInt("material.diffuseColour", 0); // diffuse map is at texture unit 0
-        cubeShaderProgram.uploadVec3f("material.specularColour", 0.5f, 0.5f, 0.5f);
+        Texture specularMap = new Texture("./resources/container2_specular.png", false);
+        cubeShaderProgram.uploadInt("material.diffuseColour", 0);   // diffuse map is at texture unit 0
+        cubeShaderProgram.uploadInt("material.specularColour", 1);  // specular map is at texture unit 1
         cubeShaderProgram.uploadFloat("material.K_diff",   5);
         cubeShaderProgram.uploadFloat("material.K_spec",   5);
         cubeShaderProgram.uploadFloat("material.shininess", 64.0f);
 
-        // (finish setting-up light -- pass light colour to light soure fragment shader)
+        // (finish setting-up light -- pass light colour to light source fragment shader)
         lightShaderProgram.use();
         lightShaderProgram.uploadVec3f("lightColour",  lightColour);
 
@@ -192,6 +193,8 @@ public class Main {
             // textures
             glActiveTexture(GL_TEXTURE0);       // bind texture to texture unit 0
             glBindTexture(GL_TEXTURE_2D, diffuseMap.getHandle());
+            glActiveTexture(GL_TEXTURE1);       // bind texture to texture unit 1
+            glBindTexture(GL_TEXTURE_2D, specularMap.getHandle());
 
             // draw/render
             glBindVertexArray(cubeMesh.getVAOHandle());     // bind vertex attrib buffer
