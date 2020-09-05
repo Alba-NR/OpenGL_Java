@@ -9,9 +9,12 @@ struct Material {
 
 };
 
-struct Light { // point light
+struct Light { // flash light (spotlight)
     vec3 position;      // light pos in wc
     vec3 colour;        // light colour
+    vec3 direction;     // light direction
+    float cutoffCosine; // cosine of spotlight cutoff angle
+    float outerCutoffCosine; // cosine of outer spotlight cutoff angle (for softer borders)
 
     float constant;     // constants for impl attenuation
     float linear;
@@ -36,6 +39,7 @@ void main()
     float distance = length(light.position - wc_fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
+
     // get diffuse & specular colours from textures (the maps...)
     vec3 diffColour = vec3(texture(material.diffuseColour, TexCoord));
     vec3 specColour = vec3(texture(material.specularColour, TexCoord));
@@ -43,9 +47,13 @@ void main()
     // ambient reflection (- ambient colour same as diffuse)
     vec3 I_ambient = I_a * diffColour;
 
+    // angles for cutoff of spotlight
+    vec3 L = normalize(light.position - wc_fragPos);
+    float theta = dot(L, normalize(-light.direction));
+    float I = clamp((theta - light.outerCutoffCosine) / (light.cutoffCosine - light.outerCutoffCosine), 0.0, 1.0); // clamp values to [0.0, 1.0] range
+
     // diffuse reflection
     vec3 N = normalize(wc_normal);
-    vec3 L = normalize(light.position - wc_fragPos);
     vec3 I_diffuse = light.colour * diffColour * material.K_diff * max(dot(N, L), 0.0);
 
     // specular reflection
@@ -55,8 +63,8 @@ void main()
 
     // attenuation
     I_ambient *= attenuation;
-    I_diffuse *= attenuation;
-    I_specular *= attenuation;
+    I_diffuse *= attenuation * I;
+    I_specular *= attenuation * I;
 
     vec3 I_result = I_ambient + I_diffuse + I_specular;
     FragColor = vec4(I_result, 1.0);

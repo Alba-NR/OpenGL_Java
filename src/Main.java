@@ -137,12 +137,12 @@ public class Main {
         cubeShaderProgram.uploadFloat("light.constant",  1.0f); // set constants for attenuation
         cubeShaderProgram.uploadFloat("light.linear",    0.09f);
         cubeShaderProgram.uploadFloat("light.quadratic", 0.032f);
-        Vector3f lightPos = new Vector3f(1.2f, 1.0f, 2.0f); // light position
-        cubeShaderProgram.uploadVec3f("light.position",  lightPos);
+        cubeShaderProgram.uploadFloat("light.cutoffCosine", (float) Math.cos(Math.toRadians(12.5)));
+        cubeShaderProgram.uploadFloat("light.outerCutoffCosine", (float) Math.cos(Math.toRadians(17.5)));
 
-        Matrix4f lightModel = new Matrix4f();   // calc model matrix for light cube
+        /*Matrix4f lightModel = new Matrix4f();   // calc model matrix for light cube
         lightModel.translate(lightPos);
-        lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube
+        lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube*/
 
         // set-up cube material
         Texture diffuseMap = new Texture("./resources/container2.png", false);
@@ -153,9 +153,9 @@ public class Main {
         cubeShaderProgram.uploadFloat("material.K_spec",   5);
         cubeShaderProgram.uploadFloat("material.shininess", 64.0f);
 
-        // (finish setting-up light -- pass light colour to light source fragment shader)
+        /*// (finish setting-up light -- pass light colour to light source fragment shader)
         lightShaderProgram.use();
-        lightShaderProgram.uploadVec3f("lightColour",  lightColour);
+        lightShaderProgram.uploadVec3f("lightColour",  lightColour);*/
 
 
         // multiple cubes
@@ -192,6 +192,8 @@ public class Main {
             // --- render commands ---
             cubeShaderProgram.use();    // use cube shader
             cubeShaderProgram.uploadVec3f("wc_cameraPos", camera.getCameraPos());
+            cubeShaderProgram.uploadVec3f("light.position",  camera.getCameraPos());
+            cubeShaderProgram.uploadVec3f("light.direction",  camera.getCameraFront());
 
             // textures
             glActiveTexture(GL_TEXTURE0);       // bind texture to texture unit 0
@@ -228,7 +230,7 @@ public class Main {
             glBindVertexArray(0);       // remove the binding
 
             // render light cube object
-            glBindVertexArray(cubeMesh.getVAOHandle());
+            /*glBindVertexArray(cubeMesh.getVAOHandle());
             lightShaderProgram.use();
             Matrix4f mvp =  new Matrix4f(projection);   // calc MVP matrix
             mvp.mul(view).mul(lightModel);
@@ -237,7 +239,7 @@ public class Main {
 
             //glDrawArrays(GL_TRIANGLES, 0, cubeMesh.getNumOfTriangles());
             glDrawElements(GL_TRIANGLES, cubeMesh.getNumOfTriangles(), GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);       // remove the binding
+            glBindVertexArray(0);       // remove the binding*/
 
             // --- check events & swap buffers ---
             glfwSwapBuffers(window);    // swap back & front buffers
