@@ -131,17 +131,16 @@ public class Main {
         Vector3f bgColour = new Vector3f(0.2f, 0.2f, 0.2f);
         cubeShaderProgram.use();    // set shader program to use
 
+        cubeShaderProgram.uploadVec3f("I_a", 0.7f,0.7f,1.0f);  // set ambient illumination intensity
+
         // set-up lights
 
         // directional light
         cubeShaderProgram.uploadVec3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        cubeShaderProgram.uploadVec3f("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-        cubeShaderProgram.uploadVec3f("dirLight.specular", 0.5f, 0.5f, 0.5f);
+        cubeShaderProgram.uploadVec3f("dirLight.colour", 1.0f, 1.0f, 1.0f);
 
         // flashlight spotlight
-        cubeShaderProgram.uploadVec3f("spotLight.ambient",  0.05f, 0.05f, 0.05f);
-        cubeShaderProgram.uploadVec3f("spotLight.diffuse",  0.8f, 0.8f, 0.8f);
-        cubeShaderProgram.uploadVec3f("spotLight.specular",  1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadVec3f("spotLight.colour",  1.0f, 1.0f, 1.0f);
         cubeShaderProgram.uploadFloat("spotLight.constant",  1.0f); // set constants for attenuation
         cubeShaderProgram.uploadFloat("spotLight.linear",    0.07f);
         cubeShaderProgram.uploadFloat("spotLight.quadratic", 0.017f);
@@ -157,27 +156,24 @@ public class Main {
 
         // point light 1
         cubeShaderProgram.uploadVec3f("pointLights[0].position", pointLightPositions[0]);
-        cubeShaderProgram.uploadVec3f("pointLights[0].ambient",  0.05f, 0.05f, 0.05f);
-        cubeShaderProgram.uploadVec3f("pointLights[0].diffuse",  0.8f, 0.8f, 0.8f);
-        cubeShaderProgram.uploadVec3f("pointLights[0].specular",  1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadVec3f("pointLights[0].colour", 1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadFloat("pointLights[0].strength", 2.5f);
         cubeShaderProgram.uploadFloat("pointLights[0].constant",  1.0f); // set constants for attenuation
-        cubeShaderProgram.uploadFloat("pointLights[0].linear",    0.14f);
-        cubeShaderProgram.uploadFloat("pointLights[0].quadratic", 0.07f);
+        cubeShaderProgram.uploadFloat("pointLights[0].linear",    0.09f);
+        cubeShaderProgram.uploadFloat("pointLights[0].quadratic", 0.032f);
 
         // point light 2
         cubeShaderProgram.uploadVec3f("pointLights[1].position", pointLightPositions[1]);
-        cubeShaderProgram.uploadVec3f("pointLights[1].ambient",  0.05f, 0.05f, 0.05f);
-        cubeShaderProgram.uploadVec3f("pointLights[1].diffuse",  0.8f, 0.8f, 0.8f);
-        cubeShaderProgram.uploadVec3f("pointLights[1].specular",  1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadVec3f("pointLights[1].colour", 1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadFloat("pointLights[1].strength", 2.5f);
         cubeShaderProgram.uploadFloat("pointLights[1].constant",  1.0f); // set constants for attenuation
         cubeShaderProgram.uploadFloat("pointLights[1].linear",    0.09f);
         cubeShaderProgram.uploadFloat("pointLights[1].quadratic", 0.032f);
 
         // point light 3
         cubeShaderProgram.uploadVec3f("pointLights[2].position", pointLightPositions[2]);
-        cubeShaderProgram.uploadVec3f("pointLights[2].ambient",  0.05f, 0.05f, 0.05f);
-        cubeShaderProgram.uploadVec3f("pointLights[2].diffuse",  0.8f, 0.8f, 0.8f);
-        cubeShaderProgram.uploadVec3f("pointLights[2].specular",  1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadVec3f("pointLights[2].colour", 1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadFloat("pointLights[2].strength", 2.5f);
         cubeShaderProgram.uploadFloat("pointLights[2].constant",  1.0f); // set constants for attenuation
         cubeShaderProgram.uploadFloat("pointLights[2].linear",    0.14f);
         cubeShaderProgram.uploadFloat("pointLights[2].quadratic", 0.07f);
@@ -188,6 +184,9 @@ public class Main {
         Texture specularMap = new Texture("./resources/container2_specular.png", false);
         cubeShaderProgram.uploadInt("material.diffuseColour", 0);   // diffuse map is at texture unit 0
         cubeShaderProgram.uploadInt("material.specularColour", 1);  // specular map is at texture unit 1
+        cubeShaderProgram.uploadFloat("material.K_a", 0.5f);
+        cubeShaderProgram.uploadFloat("material.K_diff", 0.4f);
+        cubeShaderProgram.uploadFloat("material.K_spec", 0.8f);
         cubeShaderProgram.uploadFloat("material.shininess", 64.0f);
 
         // multiple cubes
