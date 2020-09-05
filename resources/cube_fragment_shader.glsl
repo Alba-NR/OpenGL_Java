@@ -12,6 +12,7 @@ struct Material {
 struct DirLight { // directional light in scene (1 atm)
     vec3 colour;        // light colour
     vec3 direction;     // light direction
+    float strength;     // light strength/intensity
 };
 
 struct PointLight { // point light
@@ -95,7 +96,7 @@ vec3 CalcDirLight(DirLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColo
     vec3 I_diffuse = light.colour * diffColour * material.K_diff * max(dot(N, L), 0.0);
     vec3 I_specular = light.colour * specColour * material.K_spec * pow(max(dot(V, R), 0.0), material.shininess);
 
-    return I_diffuse + I_specular;
+    return (I_diffuse + I_specular) * light.strength;
 }
 
 vec3 CalcPointLight(PointLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColour)
