@@ -9,8 +9,8 @@ struct Material {
 
 };
 
-struct Light {
-    vec3 position;      // light pos in wc
+struct Light { // directional light
+    vec3 direction;     // direction of light
     vec3 colour;        // light colour
     float intensity;    // magnitude of light's intensity (not colour)
 };
@@ -29,8 +29,8 @@ const vec3 I_a = vec3(1, 1, 1);     // ambient light intensity
 
 void main()
 {
-    // point light intensity is smaller further away
-    float distance = length(light.position - wc_fragPos);
+    // light intensity is smaller further away...
+    float distance = 3;
     float I = light.intensity / (radians(180) * 4 * pow(distance, 2));
 
     // get diffuse & specular colours from textures (the maps...)
@@ -42,7 +42,7 @@ void main()
 
     // diffuse reflection
     vec3 N = normalize(wc_normal);
-    vec3 L = normalize(light.position - wc_fragPos);
+    vec3 L = normalize(-light.direction);
     vec3 I_diffuse = light.colour * I * diffColour * material.K_diff * max(dot(N, L), 0.0);
 
     // specular reflection

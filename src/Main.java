@@ -135,11 +135,11 @@ public class Main {
         Vector3f lightColour = new Vector3f(1.0f, 1.0f, 1.0f);
         cubeShaderProgram.uploadVec3f("light.colour",  lightColour);
         cubeShaderProgram.uploadFloat("light.intensity", 25);
-        Vector3f lightPos = new Vector3f(1.2f, 1.0f, 2.0f); // light position
-        cubeShaderProgram.uploadVec3f("light.position",  lightPos);
+        Vector3f lightDirection = new Vector3f(1.2f, 1.0f, 2.0f); // light position
+        cubeShaderProgram.uploadVec3f("light.direction",  lightDirection);
 
         Matrix4f lightModel = new Matrix4f();   // calc model matrix for light cube
-        lightModel.translate(lightPos);
+        lightModel.translate(new Vector3f(1000));
         lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube
 
         // set-up cube material
