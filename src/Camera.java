@@ -17,7 +17,7 @@ public class Camera {
 
     private double yaw = -90.0;     // like azimuthal angle for 'lens' of camera as if centre of camera at O (spherical polar)
     private double pitch = 0.0;     // like polar angle ...
-    private float cameraSpeed =  2.0f; // 1.0f for more 'cinematic' movement
+    private float cameraSpeed =  4.0f; // 1.0f for more 'cinematic' movement
     private float sensitivity =  0.08f; // 0.05f for more 'cinematic' movement
     private double fov =  45.0;
 

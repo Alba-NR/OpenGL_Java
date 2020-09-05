@@ -131,32 +131,64 @@ public class Main {
         Vector3f bgColour = new Vector3f(0.2f, 0.2f, 0.2f);
         cubeShaderProgram.use();    // set shader program to use
 
-        // set-up light
-        Vector3f lightColour = new Vector3f(1.0f, 1.0f, 1.0f);
-        cubeShaderProgram.uploadVec3f("light.colour",  lightColour);;
-        cubeShaderProgram.uploadFloat("light.constant",  1.0f); // set constants for attenuation
-        cubeShaderProgram.uploadFloat("light.linear",    0.09f);
-        cubeShaderProgram.uploadFloat("light.quadratic", 0.032f);
-        cubeShaderProgram.uploadFloat("light.cutoffCosine", (float) Math.cos(Math.toRadians(12.5)));
-        cubeShaderProgram.uploadFloat("light.outerCutoffCosine", (float) Math.cos(Math.toRadians(17.5)));
+        // set-up lights
 
-        /*Matrix4f lightModel = new Matrix4f();   // calc model matrix for light cube
-        lightModel.translate(lightPos);
-        lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube*/
+        // directional light
+        cubeShaderProgram.uploadVec3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        cubeShaderProgram.uploadVec3f("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        cubeShaderProgram.uploadVec3f("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+        // flashlight spotlight
+        cubeShaderProgram.uploadVec3f("spotLight.ambient",  0.05f, 0.05f, 0.05f);
+        cubeShaderProgram.uploadVec3f("spotLight.diffuse",  0.8f, 0.8f, 0.8f);
+        cubeShaderProgram.uploadVec3f("spotLight.specular",  1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadFloat("spotLight.constant",  1.0f); // set constants for attenuation
+        cubeShaderProgram.uploadFloat("spotLight.linear",    0.07f);
+        cubeShaderProgram.uploadFloat("spotLight.quadratic", 0.017f);
+        cubeShaderProgram.uploadFloat("spotLight.cutoffCosine", (float) Math.cos(Math.toRadians(12.5)));
+        cubeShaderProgram.uploadFloat("spotLight.outerCutoffCosine", (float) Math.cos(Math.toRadians(17.5)));
+
+        // point lights
+        Vector3f[] pointLightPositions = {
+                new Vector3f( 0.7f,  0.2f,  2.0f),
+                new Vector3f( 2.3f, -3.3f, -4.0f),
+                new Vector3f(-4.0f,  2.0f, -12.0f)
+        };
+
+        // point light 1
+        cubeShaderProgram.uploadVec3f("pointLights[0].position", pointLightPositions[0]);
+        cubeShaderProgram.uploadVec3f("pointLights[0].ambient",  0.05f, 0.05f, 0.05f);
+        cubeShaderProgram.uploadVec3f("pointLights[0].diffuse",  0.8f, 0.8f, 0.8f);
+        cubeShaderProgram.uploadVec3f("pointLights[0].specular",  1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadFloat("pointLights[0].constant",  1.0f); // set constants for attenuation
+        cubeShaderProgram.uploadFloat("pointLights[0].linear",    0.14f);
+        cubeShaderProgram.uploadFloat("pointLights[0].quadratic", 0.07f);
+
+        // point light 2
+        cubeShaderProgram.uploadVec3f("pointLights[1].position", pointLightPositions[1]);
+        cubeShaderProgram.uploadVec3f("pointLights[1].ambient",  0.05f, 0.05f, 0.05f);
+        cubeShaderProgram.uploadVec3f("pointLights[1].diffuse",  0.8f, 0.8f, 0.8f);
+        cubeShaderProgram.uploadVec3f("pointLights[1].specular",  1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadFloat("pointLights[1].constant",  1.0f); // set constants for attenuation
+        cubeShaderProgram.uploadFloat("pointLights[1].linear",    0.09f);
+        cubeShaderProgram.uploadFloat("pointLights[1].quadratic", 0.032f);
+
+        // point light 3
+        cubeShaderProgram.uploadVec3f("pointLights[2].position", pointLightPositions[2]);
+        cubeShaderProgram.uploadVec3f("pointLights[2].ambient",  0.05f, 0.05f, 0.05f);
+        cubeShaderProgram.uploadVec3f("pointLights[2].diffuse",  0.8f, 0.8f, 0.8f);
+        cubeShaderProgram.uploadVec3f("pointLights[2].specular",  1.0f, 1.0f, 1.0f);
+        cubeShaderProgram.uploadFloat("pointLights[2].constant",  1.0f); // set constants for attenuation
+        cubeShaderProgram.uploadFloat("pointLights[2].linear",    0.14f);
+        cubeShaderProgram.uploadFloat("pointLights[2].quadratic", 0.07f);
+
 
         // set-up cube material
         Texture diffuseMap = new Texture("./resources/container2.png", false);
         Texture specularMap = new Texture("./resources/container2_specular.png", false);
         cubeShaderProgram.uploadInt("material.diffuseColour", 0);   // diffuse map is at texture unit 0
         cubeShaderProgram.uploadInt("material.specularColour", 1);  // specular map is at texture unit 1
-        cubeShaderProgram.uploadFloat("material.K_diff",   5);
-        cubeShaderProgram.uploadFloat("material.K_spec",   5);
         cubeShaderProgram.uploadFloat("material.shininess", 64.0f);
-
-        /*// (finish setting-up light -- pass light colour to light source fragment shader)
-        lightShaderProgram.use();
-        lightShaderProgram.uploadVec3f("lightColour",  lightColour);*/
-
 
         // multiple cubes
         Vector3f[] cubePositions = {
@@ -192,8 +224,8 @@ public class Main {
             // --- render commands ---
             cubeShaderProgram.use();    // use cube shader
             cubeShaderProgram.uploadVec3f("wc_cameraPos", camera.getCameraPos());
-            cubeShaderProgram.uploadVec3f("light.position",  camera.getCameraPos());
-            cubeShaderProgram.uploadVec3f("light.direction",  camera.getCameraFront());
+            cubeShaderProgram.uploadVec3f("spotLight.position",  camera.getCameraPos());    // for spotlight
+            cubeShaderProgram.uploadVec3f("spotLight.direction",  camera.getCameraFront());
 
             // textures
             glActiveTexture(GL_TEXTURE0);       // bind texture to texture unit 0
@@ -229,17 +261,23 @@ public class Main {
             }
             glBindVertexArray(0);       // remove the binding
 
-            // render light cube object
-            /*glBindVertexArray(cubeMesh.getVAOHandle());
+            // render light cube objects for point lights
+            glBindVertexArray(cubeMesh.getVAOHandle());
             lightShaderProgram.use();
-            Matrix4f mvp =  new Matrix4f(projection);   // calc MVP matrix
-            mvp.mul(view).mul(lightModel);
-            lightShaderProgram.uploadMatrix4f("mvp_m", mvp);
+            lightShaderProgram.uploadVec3f("lightColour",  1.0f, 1.0f, 1.0f);
 
+            for (Vector3f pointLightPosition : pointLightPositions) {
+                Matrix4f lightModel = new Matrix4f();   // calc model matrix
+                lightModel.translate(pointLightPosition);
+                lightModel.scale(new Vector3f(0.2f));
 
-            //glDrawArrays(GL_TRIANGLES, 0, cubeMesh.getNumOfTriangles());
-            glDrawElements(GL_TRIANGLES, cubeMesh.getNumOfTriangles(), GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);       // remove the binding*/
+                Matrix4f mvp = new Matrix4f(projection);   // calc MVP matrix
+                mvp.mul(view).mul(lightModel);
+                lightShaderProgram.uploadMatrix4f("mvp_m", mvp);
+
+                glDrawElements(GL_TRIANGLES, cubeMesh.getNumOfTriangles(), GL_UNSIGNED_INT, 0);
+            }
+            glBindVertexArray(0);       // remove the binding
 
             // --- check events & swap buffers ---
             glfwSwapBuffers(window);    // swap back & front buffers
