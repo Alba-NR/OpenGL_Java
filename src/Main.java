@@ -133,13 +133,15 @@ public class Main {
 
         // set-up light
         Vector3f lightColour = new Vector3f(1.0f, 1.0f, 1.0f);
-        cubeShaderProgram.uploadVec3f("light.colour",  lightColour);
-        cubeShaderProgram.uploadFloat("light.intensity", 25);
-        Vector3f lightDirection = new Vector3f(1.2f, 1.0f, 2.0f); // light position
-        cubeShaderProgram.uploadVec3f("light.direction",  lightDirection);
+        cubeShaderProgram.uploadVec3f("light.colour",  lightColour);;
+        cubeShaderProgram.uploadFloat("light.constant",  1.0f); // set constants for attenuation
+        cubeShaderProgram.uploadFloat("light.linear",    0.09f);
+        cubeShaderProgram.uploadFloat("light.quadratic", 0.032f);
+        Vector3f lightPos = new Vector3f(1.2f, 1.0f, 2.0f); // light position
+        cubeShaderProgram.uploadVec3f("light.position",  lightPos);
 
         Matrix4f lightModel = new Matrix4f();   // calc model matrix for light cube
-        lightModel.translate(new Vector3f(1000));
+        lightModel.translate(lightPos);
         lightModel.scale(new Vector3f(0.2f)); // make it a smaller cube
 
         // set-up cube material
@@ -154,6 +156,7 @@ public class Main {
         // (finish setting-up light -- pass light colour to light source fragment shader)
         lightShaderProgram.use();
         lightShaderProgram.uploadVec3f("lightColour",  lightColour);
+
 
         // multiple cubes
         Vector3f[] cubePositions = {
