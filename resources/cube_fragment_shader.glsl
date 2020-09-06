@@ -52,6 +52,7 @@ uniform SpotLight spotLight;
 uniform Material material;
 uniform vec3 wc_cameraPos;
 uniform vec3 I_a;
+uniform bool flashLightIsON;
 
 // function prototypes
 vec3 CalcDirLight(DirLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColour);
@@ -77,7 +78,7 @@ void main()
     for(int i = 0; i < MAX_POINT_LIGHTS; i++) I_result += CalcPointLight(pointLights[i], N, V, diffColour, specColour);
 
     // Flashlight spotlight
-    //I_result += CalcSpotLight(spotLight, N, V, diffColour, specColour);
+    if(flashLightIsON) I_result += CalcSpotLight(spotLight, N, V, diffColour, specColour);
 
     // ambient light
     I_result += I_a * diffColour * material.K_a;

@@ -64,7 +64,7 @@ public class Main {
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
             if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE ) // close window when esc key is released
                 glfwSetWindowShouldClose(window, true);
-            if (key == GLFW_KEY_F) { // view in wireframe mode whilst F is pressed
+            if (key == GLFW_KEY_E) { // view in wireframe mode whilst E is pressed
                 if ( action == GLFW_PRESS ) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                 else if ( action == GLFW_RELEASE ) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             }
@@ -140,18 +140,18 @@ public class Main {
         dirLight.uploadSpecsToShader(cubeShaderProgram, "dirLight");
 
         // flashlight spotlight
-        SpotLight spotLight = new SpotLight(
+        FlashLight flashLight = new FlashLight(
                 camera.getCameraPos(),
                 new Vector3f(1.0f, 1.0f, 1.0f),
                 1.0f,
                 camera.getCameraFront(),
                 1.0f,
-                0.07f,
-                0.017f,
+                0.045f,
+                0.00075f,
                 (float) Math.cos(Math.toRadians(12.5)),
-                (float) Math.cos(Math.toRadians(17.5))
+                (float) Math.cos(Math.toRadians(15))
         );
-        spotLight.uploadSpecsToShader(cubeShaderProgram, "spotLight");
+        flashLight.uploadSpecsToShader(cubeShaderProgram, "spotLight");
 
         // point lights
         Vector3f[] pointLightPositions = {
@@ -221,6 +221,8 @@ public class Main {
         float deltaTime;	        // Time between current frame and last frame
         float lastFrameT = 0.0f;    // Time of last frame
 
+        int currentKeyFState = glfwGetKey(window, GLFW_KEY_F); // get current state of F key (for flashlight)
+
         // repeat while GLFW isn't instructed to close
         while(!glfwWindowShouldClose(window)){
             // --- per-frame time logic ---
@@ -230,6 +232,7 @@ public class Main {
 
             // --- process keyboard arrows input --
             processAWSDInput(deltaTime);
+            currentKeyFState = processFlashLightToggle(flashLight, currentKeyFState);
 
             // --- clear screen ---
             glClearColor(bgColour.x, bgColour.y, bgColour.z, 1.0f); // specify colour to clear to
@@ -238,8 +241,12 @@ public class Main {
             // --- render commands ---
             cubeShaderProgram.use();    // use cube shader
             cubeShaderProgram.uploadVec3f("wc_cameraPos", camera.getCameraPos());
-            spotLight.setAndUploadPosition(camera.getCameraPos(), cubeShaderProgram, "spotLight");  // for flashlight
-            spotLight.setAndUploadDirection(camera.getCameraFront(), cubeShaderProgram, "spotLight");
+
+            if(flashLight.getState()){ // if flashlight is ON
+                flashLight.setAndUploadPosition(camera.getCameraPos(), cubeShaderProgram, "spotLight");  // for flashlight
+                flashLight.setAndUploadDirection(camera.getCameraFront(), cubeShaderProgram, "spotLight");
+                cubeShaderProgram.uploadInt("flashLightIsON", 1);
+            } else cubeShaderProgram.uploadInt("flashLightIsON", 0);
 
             // textures
             glActiveTexture(GL_TEXTURE0);       // bind texture to texture unit 0
@@ -310,6 +317,17 @@ public class Main {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.RIGHT, deltaTime);
         if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.DOWNWARD, deltaTime);
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.UPWARD, deltaTime);
+    }
+
+    /**
+     * Process keyboard input (press of key F) to toggle the flashlight
+     * @param flashLight the flashlight to toggle ON/OFF
+     * @return the new GLFW state of the F key
+     */
+    public int processFlashLightToggle(FlashLight flashLight, int currentFKeyState){
+        int newKeyState = glfwGetKey(window, GLFW_KEY_F);
+        if (currentFKeyState == GLFW_PRESS && newKeyState == GLFW_RELEASE) flashLight.toggle();
+        return  newKeyState;
     }
 
     /**
