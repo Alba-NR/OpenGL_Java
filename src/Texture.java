@@ -11,6 +11,10 @@ import java.nio.ByteBuffer;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.*;
 
+enum TextureType{
+    DIFFUSE,
+    SPECULAR
+}
 /**
  *  Represents a texture.
  */
@@ -19,9 +23,11 @@ public class Texture {
     private int width;
     private int height;
     private int id;
+    private TextureType type;
 
-    Texture(String filename, boolean isRGBA){
+    Texture(String filename, boolean isRGBA, TextureType type){
         this.filename = filename;
+        this.type = type;
         loadTexture(isRGBA);
     }
 
@@ -88,5 +94,13 @@ public class Texture {
 
     public int getHandle(){
         return id;
+    }
+
+    public TextureType getType() {
+        return type;
+    }
+
+    public void setType(TextureType type) {
+        this.type = type;
     }
 }

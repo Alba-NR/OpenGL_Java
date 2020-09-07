@@ -1,3 +1,4 @@
+import java.util.List;
 
 /**
  * Subclass of Mesh class.
@@ -8,6 +9,11 @@ public class CubeMesh extends Mesh {
 
     public CubeMesh() {
         super();
+        initialize();
+    }
+
+    public CubeMesh(List<Texture> texturesList) {
+        super(texturesList);
         initialize();
     }
 

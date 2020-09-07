@@ -1,8 +1,9 @@
 #version 330 core
 
 struct Material {
-    sampler2D diffuseColour;    // diffuse map (for diffuse colour)
-    sampler2D specularColour;   // specular map (for specular reflection)
+    sampler2D diffuse_tex1;    // diffuse map (for diffuse colour)
+    sampler2D diffuse_tex2;
+    sampler2D specular_tex1;   // specular map (for specular reflection)
     float K_a;
     float K_diff;
     float K_spec;
@@ -68,8 +69,8 @@ void main()
     vec3 V = normalize(wc_cameraPos - wc_fragPos);
 
     // get diffuse & specular colours from textures (the maps...)
-    vec3 diffColour = vec3(texture(material.diffuseColour, TexCoord));
-    vec3 specColour = vec3(texture(material.specularColour, TexCoord));
+    vec3 diffColour = vec3(mix(texture(material.diffuse_tex1, TexCoord), texture(material.diffuse_tex2, TexCoord), 0.2));
+    vec3 specColour = vec3(texture(material.specular_tex1, TexCoord));
 
     // Directional lighting
     I_result = CalcDirLight(dirLight, N, V, diffColour, specColour);

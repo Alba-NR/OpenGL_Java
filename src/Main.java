@@ -3,6 +3,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -133,7 +135,7 @@ public class Main {
 
         cubeShaderProgram.uploadVec3f("I_a", 0.7f,0.7f,1.0f);  // set ambient illumination intensity
 
-        // set-up lights
+        // --- set-up lights ---
 
         // directional light
         DirLight dirLight = new DirLight(new Vector3f(1.0f, 1.0f, 1.0f), 2.0f, new Vector3f(-0.2f, -1.0f, -0.3f));
@@ -142,14 +144,14 @@ public class Main {
         // flashlight spotlight
         FlashLight flashLight = new FlashLight(
                 camera.getCameraPos(),
-                new Vector3f(1.0f, 1.0f, 1.0f),
+                new Vector3f(1.0f, 0.0f, 0.0f),
                 1.0f,
                 camera.getCameraFront(),
                 1.0f,
                 0.045f,
                 0.00075f,
-                (float) Math.cos(Math.toRadians(12.5)),
-                (float) Math.cos(Math.toRadians(15))
+                (float) Math.cos(Math.toRadians(5)),
+                (float) Math.cos(Math.toRadians(7))
         );
         flashLight.uploadSpecsToShader(cubeShaderProgram, "spotLight");
 
@@ -194,17 +196,20 @@ public class Main {
         pointLight3.uploadSpecsToShader(cubeShaderProgram, "pointLights[2]");
 
 
-        // set-up cube material
-        Texture diffuseMap = new Texture("./resources/container2.png", false);
-        Texture specularMap = new Texture("./resources/container2_specular.png", false);
-        cubeShaderProgram.uploadInt("material.diffuseColour", 0);   // diffuse map is at texture unit 0
-        cubeShaderProgram.uploadInt("material.specularColour", 1);  // specular map is at texture unit 1
+        // --- set-up cube material ---
+        List<Texture> texList = Arrays.asList(
+                new Texture("./resources/container2.png", false, TextureType.DIFFUSE),
+                new Texture("./resources/awesomeface.png", true, TextureType.DIFFUSE),
+                new Texture("./resources/container2_specular.png", false, TextureType.SPECULAR)
+        );
+        cubeMesh.setTexturesList(texList);
+        cubeMesh.uploadTextures(cubeShaderProgram);
         cubeShaderProgram.uploadFloat("material.K_a", 0.5f);
         cubeShaderProgram.uploadFloat("material.K_diff", 0.4f);
         cubeShaderProgram.uploadFloat("material.K_spec", 0.8f);
         cubeShaderProgram.uploadFloat("material.shininess", 64.0f);
 
-        // multiple cubes
+        // --- scene w/ multiple cubes ---
         Vector3f[] cubePositions = {
                 new Vector3f(0.0f,  0.0f,  0.0f),
                 new Vector3f(2.0f,  5.0f, -15.0f),
@@ -218,12 +223,13 @@ public class Main {
                 new Vector3f(-1.3f,  1.0f, -1.5f)
         };
 
+        // --- (per frame info...) ---
         float deltaTime;	        // Time between current frame and last frame
         float lastFrameT = 0.0f;    // Time of last frame
 
         int currentKeyFState = glfwGetKey(window, GLFW_KEY_F); // get current state of F key (for flashlight)
 
-        // repeat while GLFW isn't instructed to close
+        // --- repeat while GLFW isn't instructed to close ---
         while(!glfwWindowShouldClose(window)){
             // --- per-frame time logic ---
             float currentFrameT = (float) glfwGetTime();
@@ -249,36 +255,34 @@ public class Main {
             } else cubeShaderProgram.uploadInt("flashLightIsON", 0);
 
             // textures
-            glActiveTexture(GL_TEXTURE0);       // bind texture to texture unit 0
-            glBindTexture(GL_TEXTURE_2D, diffuseMap.getHandle());
-            glActiveTexture(GL_TEXTURE1);       // bind texture to texture unit 1
-            glBindTexture(GL_TEXTURE_2D, specularMap.getHandle());
+            cubeMesh.bindTextures();
 
-            // draw/render
-            glBindVertexArray(cubeMesh.getVAOHandle());     // bind vertex attrib buffer
-
-             // calc view matrix
+            // calc view matrix
             Matrix4f view = camera.calcLookAt();
 
-            // create & upload projection matrix
+            // create projection matrix
             Matrix4f projection = new Matrix4f();
             projection.setPerspective((float) Math.toRadians(camera.getFOV()), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
 
             for(int i = 0; i < cubePositions.length; i++){
-                Matrix4f model = new Matrix4f();  // calc model matrix
+                // calc model matrix
+                Matrix4f model = new Matrix4f();
                 model.translate(cubePositions[i]);
                 model.rotate((float) Math.toRadians(20.0f * i), (new Vector3f(1.0f, 0.3f, 0.5f)).normalize());
                 cubeShaderProgram.uploadMatrix4f("model_m", model);
 
-                Matrix4f mvp =  new Matrix4f(projection);   // calc MVP matrix (once in CPU rather than per fragment in GPU...)
+                // calc MVP matrix (once in CPU rather than per fragment in GPU...)
+                Matrix4f mvp =  new Matrix4f(projection);
                 mvp.mul(view).mul(model);
                 cubeShaderProgram.uploadMatrix4f("mvp_m", mvp);
 
-                Matrix4f normalM = new Matrix4f();  // calc matrix to tranform normal vect from oc to wc
+                // calc matrix to transform normal vect from oc to wc
+                Matrix4f normalM = new Matrix4f();
                 model.invert(normalM).transpose();
                 cubeShaderProgram.uploadMatrix4f("normal_m", normalM);
 
-                glDrawElements(GL_TRIANGLES, cubeMesh.getNumOfTriangles(), GL_UNSIGNED_INT, 0); // draw it as triangles
+                // draw cube mesh as triangles
+                cubeMesh.render(cubeShaderProgram);
             }
             glBindVertexArray(0);       // remove the binding
 
@@ -296,7 +300,7 @@ public class Main {
                 mvp.mul(view).mul(lightModel);
                 lightShaderProgram.uploadMatrix4f("mvp_m", mvp);
 
-                glDrawElements(GL_TRIANGLES, cubeMesh.getNumOfTriangles(), GL_UNSIGNED_INT, 0);
+                cubeMesh.render(lightShaderProgram);
             }
             glBindVertexArray(0);       // remove the binding
 
