@@ -282,7 +282,7 @@ public class Main {
                 cubeShaderProgram.uploadMatrix4f("normal_m", normalM);
 
                 // draw cube mesh as triangles
-                cubeMesh.render(cubeShaderProgram);
+                cubeMesh.render();
             }
             glBindVertexArray(0);       // remove the binding
 
@@ -300,7 +300,7 @@ public class Main {
                 mvp.mul(view).mul(lightModel);
                 lightShaderProgram.uploadMatrix4f("mvp_m", mvp);
 
-                cubeMesh.render(lightShaderProgram);
+                cubeMesh.render();
             }
             glBindVertexArray(0);       // remove the binding
 

@@ -84,10 +84,9 @@ public abstract class Mesh {
     }
 
     /**
-     * Draw the mesh using the given shader program.
-     * @param shader {@link ShaderProgram} to use for rendering.
+     * Draw the mesh using the currently active shader program.
      */
-    public void render(ShaderProgram shader){
+    public void render(){
         // draw mesh
         glBindVertexArray(vaoHandle);
         glDrawElements(GL_TRIANGLES, num_of_triangles, GL_UNSIGNED_INT, 0);
@@ -132,7 +131,6 @@ public abstract class Mesh {
             glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
             glBindTexture(GL_TEXTURE_2D, texturesList.get(i).getHandle());  // bind texture to appropriate texture unit
         }
-        //glActiveTexture(GL_TEXTURE0);
     }
 
     public void deallocateResources(){
