@@ -144,8 +144,8 @@ public class Main {
         // flashlight spotlight
         FlashLight flashLight = new FlashLight(
                 camera.getCameraPos(),
-                new Vector3f(1.0f, 0.0f, 0.0f),
-                1.0f,
+                new Vector3f(0.5f, 0.5f, 1.0f),
+                2.5f,
                 camera.getCameraFront(),
                 1.0f,
                 0.045f,
@@ -161,12 +161,17 @@ public class Main {
                 new Vector3f( 2.3f, -3.3f, -4.0f),
                 new Vector3f(-4.0f,  2.0f, -12.0f)
         };
+        Vector3f[] pointLightColours = {
+                new Vector3f(0.0f, 1.0f, 1.0f),
+                new Vector3f(1.0f,  0.0f, 0.0f),
+                new Vector3f(1.0f, 1.0f, 0.0f)
+        };
 
         // point light 1
         PointLight pointLight1 = new PointLight(
                 pointLightPositions[0],
-                new Vector3f(1.0f, 1.0f, 1.0f),
-                2.5f,
+                pointLightColours[0],
+                1.0f,
                 1.0f,
                  0.09f,
                 0.032f
@@ -176,7 +181,7 @@ public class Main {
         // point light 2
         PointLight pointLight2 = new PointLight(
                 pointLightPositions[1],
-                new Vector3f(1.0f, 1.0f, 1.0f),
+                pointLightColours[1],
                 2.5f,
                 1.0f,
                 0.09f,
@@ -187,7 +192,7 @@ public class Main {
         // point light 3
         PointLight pointLight3 = new PointLight(
                 pointLightPositions[2],
-                new Vector3f(1.0f, 1.0f, 1.0f),
+                pointLightColours[2],
                 2.5f,
                 1.0f,
                 0.14f,
@@ -199,8 +204,9 @@ public class Main {
         // --- set-up cube material ---
         List<Texture> texList = Arrays.asList(
                 new Texture("./resources/container2.png", false, TextureType.DIFFUSE),
-                new Texture("./resources/awesomeface.png", true, TextureType.DIFFUSE),
-                new Texture("./resources/container2_specular.png", false, TextureType.SPECULAR)
+                new Texture("./resources/container2_specular.png", false, TextureType.SPECULAR),
+                new Texture("./resources/circuitry-albedo.png", false, TextureType.DIFFUSE),
+                new Texture("./resources/circuitry-metallic.png", false, TextureType.SPECULAR)
         );
         cubeMesh.setTexturesList(texList);
         cubeMesh.uploadTextures(cubeShaderProgram);
@@ -289,11 +295,12 @@ public class Main {
             // render light cube objects for point lights
             glBindVertexArray(cubeMesh.getVAOHandle());
             lightShaderProgram.use();
-            lightShaderProgram.uploadVec3f("lightColour",  1.0f, 1.0f, 1.0f);
 
-            for (Vector3f pointLightPosition : pointLightPositions) {
+            for(int i = 0; i < pointLightPositions.length; i++) {
+                lightShaderProgram.uploadVec3f("lightColour",  pointLightColours[i]);
+
                 Matrix4f lightModel = new Matrix4f();   // calc model matrix
-                lightModel.translate(pointLightPosition);
+                lightModel.translate(pointLightPositions[i]);
                 lightModel.scale(new Vector3f(0.2f));
 
                 Matrix4f mvp = new Matrix4f(projection);   // calc MVP matrix
