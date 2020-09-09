@@ -22,6 +22,7 @@ public class Main {
     private ShaderProgram cubeShaderProgram;  // shader prog to use for cubes
     private ShaderProgram lightShaderProgram;  // shader prog to use for light cube
     private CubeMesh cubeMesh;  // cube mesh
+    private Mesh customMesh;    // custom mesh from OBJ file
 
     final private int SCR_WIDTH = 1200;  // screen size settings
     final private int SCR_HEIGHT = 900;
@@ -110,16 +111,23 @@ public class Main {
         lightShaderProgram = new ShaderProgram(lightVertexShader, lightFragmentShader);
 
 
-        // --- set up vertex data & buffers, config cube's VAO & VBO and link vertex attributes USING CUBEMESH---
+        // --- set up vertex data & buffers, config mesh's VAO & VBO and link vertex attributes ---
 
-        cubeMesh = new CubeMesh();
-        cubeShaderProgram.bindDataToShader(0, cubeMesh.getVertexVBOHandle(), 3);
-        cubeShaderProgram.bindDataToShader(1, cubeMesh.getNormalHandle(), 3);
-        cubeShaderProgram.bindDataToShader(2, cubeMesh.getTexHandle(), 2);
-
+        cubeMesh = new CubeMesh();  // for point lights
         // --- config light's VAO & VBO (vbo same bc light is a cube atm) ---
         // Note: rendering a cube to repr the light source, to explicitly see it's position in the scene
         lightShaderProgram.bindDataToShader(0, cubeMesh.getVertexVBOHandle(), 3);
+
+        // custom mesh
+        List<Texture> texList = Arrays.asList(
+                new Texture("./resources/container2.png", false, TextureType.DIFFUSE),
+                new Texture("./resources/container2_specular.png", false, TextureType.SPECULAR)
+        );
+        customMesh = ModelLoader.loadModel("./resources/dragon.obj", texList);
+        cubeShaderProgram.bindDataToShader(0, customMesh.getVertexVBOHandle(), 3);
+        cubeShaderProgram.bindDataToShader(1, customMesh.getNormalHandle(), 3);
+        cubeShaderProgram.bindDataToShader(2, customMesh.getTexHandle(), 2);
+
 
         // --- unbind...
         glBindBuffer(GL_ARRAY_BUFFER, 0);    // unbind VBO
@@ -157,9 +165,9 @@ public class Main {
 
         // point lights
         Vector3f[] pointLightPositions = {
-                new Vector3f( 0.7f,  0.2f,  2.0f),
-                new Vector3f( 2.3f, -3.3f, -4.0f),
-                new Vector3f(-4.0f,  2.0f, -12.0f)
+                new Vector3f( 0.7f,  2.0f,  2.0f),
+                new Vector3f( 2.3f, 0.3f, -4.0f),
+                new Vector3f(-4.0f,  2.0f, -4.0f)
         };
         Vector3f[] pointLightColours = {
                 new Vector3f(0.0f, 1.0f, 1.0f),
@@ -201,33 +209,16 @@ public class Main {
         pointLight3.uploadSpecsToShader(cubeShaderProgram, "pointLights[2]");
 
 
-        // --- set-up cube material ---
-        List<Texture> texList = Arrays.asList(
-                new Texture("./resources/container2.png", false, TextureType.DIFFUSE),
-                new Texture("./resources/container2_specular.png", false, TextureType.SPECULAR),
-                new Texture("./resources/circuitry-albedo.png", false, TextureType.DIFFUSE),
-                new Texture("./resources/circuitry-metallic.png", false, TextureType.SPECULAR)
-        );
-        cubeMesh.setTexturesList(texList);
-        cubeMesh.uploadTextures(cubeShaderProgram);
+        // --- set-up custom mesh material ---
         cubeShaderProgram.uploadFloat("material.K_a", 0.5f);
         cubeShaderProgram.uploadFloat("material.K_diff", 0.4f);
         cubeShaderProgram.uploadFloat("material.K_spec", 0.8f);
         cubeShaderProgram.uploadFloat("material.shininess", 64.0f);
 
-        // --- scene w/ multiple cubes ---
-        Vector3f[] cubePositions = {
-                new Vector3f(0.0f,  0.0f,  0.0f),
-                new Vector3f(2.0f,  5.0f, -15.0f),
-                new Vector3f(-1.5f, -2.2f, -2.5f),
-                new Vector3f(-3.8f, -2.0f, -12.3f),
-                new Vector3f( 2.4f, -0.4f, -3.5f),
-                new Vector3f(-1.7f,  3.0f, -7.5f),
-                new Vector3f( 1.3f, -2.0f, -2.5f),
-                new Vector3f( 1.5f,  2.0f, -2.5f),
-                new Vector3f( 1.5f,  0.2f, -1.5f),
-                new Vector3f(-1.3f,  1.0f, -1.5f)
-        };
+        // --- calc model matrix ---
+        Matrix4f model = new Matrix4f();
+        model.translate(new Vector3f(0.0f,  0.0f, 0.0f));
+        cubeShaderProgram.uploadMatrix4f("model_m", model);
 
         // --- (per frame info...) ---
         float deltaTime;	        // Time between current frame and last frame
@@ -261,7 +252,7 @@ public class Main {
             } else cubeShaderProgram.uploadInt("flashLightIsON", 0);
 
             // textures
-            cubeMesh.bindTextures();
+            customMesh.bindTextures(); //todo
 
             // calc view matrix
             Matrix4f view = camera.calcLookAt();
@@ -270,26 +261,19 @@ public class Main {
             Matrix4f projection = new Matrix4f();
             projection.setPerspective((float) Math.toRadians(camera.getFOV()), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
 
-            for(int i = 0; i < cubePositions.length; i++){
-                // calc model matrix
-                Matrix4f model = new Matrix4f();
-                model.translate(cubePositions[i]);
-                model.rotate((float) Math.toRadians(20.0f * i), (new Vector3f(1.0f, 0.3f, 0.5f)).normalize());
-                cubeShaderProgram.uploadMatrix4f("model_m", model);
+            // calc MVP matrix (once in CPU rather than per fragment in GPU...)
+            Matrix4f mvp =  new Matrix4f(projection);
+            mvp.mul(view).mul(model);
+            cubeShaderProgram.uploadMatrix4f("mvp_m", mvp);
 
-                // calc MVP matrix (once in CPU rather than per fragment in GPU...)
-                Matrix4f mvp =  new Matrix4f(projection);
-                mvp.mul(view).mul(model);
-                cubeShaderProgram.uploadMatrix4f("mvp_m", mvp);
+            // calc matrix to transform normal vect from oc to wc
+            Matrix4f normalM = new Matrix4f();
+            model.invert(normalM).transpose();
+            cubeShaderProgram.uploadMatrix4f("normal_m", normalM);
 
-                // calc matrix to transform normal vect from oc to wc
-                Matrix4f normalM = new Matrix4f();
-                model.invert(normalM).transpose();
-                cubeShaderProgram.uploadMatrix4f("normal_m", normalM);
+            // draw cube mesh as triangles
+            customMesh.render();
 
-                // draw cube mesh as triangles
-                cubeMesh.render();
-            }
             glBindVertexArray(0);       // remove the binding
 
             // render light cube objects for point lights
@@ -303,7 +287,7 @@ public class Main {
                 lightModel.translate(pointLightPositions[i]);
                 lightModel.scale(new Vector3f(0.2f));
 
-                Matrix4f mvp = new Matrix4f(projection);   // calc MVP matrix
+                mvp = new Matrix4f(projection);   // calc MVP matrix
                 mvp.mul(view).mul(lightModel);
                 lightShaderProgram.uploadMatrix4f("mvp_m", mvp);
 
@@ -352,6 +336,7 @@ public class Main {
 
         // de-allocate all resources
         cubeMesh.deallocateResources();
+        customMesh.deallocateResources();
         cubeShaderProgram.delete();
         lightShaderProgram.delete();
 

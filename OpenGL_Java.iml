@@ -7,7 +7,20 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="lwjgl" level="project" />
     <orderEntry type="library" name="joml" level="project" />
+    <orderEntry type="library" name="lwjgl" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/lib/lwjgl-3.2.3/lwjgl-assimp" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/lib/lwjgl-3.2.3/lwjgl-assimp" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/lib/lwjgl-3.2.3/lwjgl-assimp" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib/lwjgl-3.2.3/lwjgl-assimp" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
   </component>
 </module>
