@@ -8,6 +8,7 @@ import graphics.lights.PointLight;
 import graphics.meshes.CubeMesh;
 import graphics.meshes.Mesh;
 import graphics.meshes.ModelLoader;
+import graphics.meshes.SquareMesh;
 import graphics.shaders.Shader;
 import graphics.shaders.ShaderProgram;
 import graphics.textures.Texture;
@@ -133,10 +134,10 @@ public class Main {
 
         // custom mesh
         List<Texture> texList = Arrays.asList(
-                new Texture("./resources/textures/container2.png", false, TextureType.DIFFUSE),
-                new Texture("./resources/textures/container2_specular.png", false, TextureType.SPECULAR)
+                new Texture("./resources/textures/cargo_container.jpg", false, TextureType.DIFFUSE)
         );
-        customMesh = ModelLoader.loadModel("./resources/models/dragon.obj", texList);
+        customMesh = ModelLoader.loadModel("./resources/models/cargo_container.obj", texList);
+        //customMesh = new SquareMesh();
         cubeShaderProgram.bindDataToShader(0, customMesh.getVertexVBOHandle(), 3);
         cubeShaderProgram.bindDataToShader(1, customMesh.getNormalHandle(), 3);
         cubeShaderProgram.bindDataToShader(2, customMesh.getTexHandle(), 2);
@@ -230,7 +231,12 @@ public class Main {
 
         // --- calc model matrix ---
         Matrix4f model = new Matrix4f();
-        model.translate(new Vector3f(0.0f,  0.0f, 0.0f));
+        model.translate(0.0f, 0.0f, 0.0f);
+        /*
+        model.scale(20)
+                .rotateAffine((float)Math.toRadians(90), 1.0f, 0.0f, 0.0f)
+                .translate(new Vector3f(0.0f,  0.0f, 0.1f));
+         */
         cubeShaderProgram.uploadMatrix4f("model_m", model);
 
         // --- (per frame info...) ---
