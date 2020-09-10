@@ -1,22 +1,24 @@
-package graphics.meshes;
+package graphics.shapes.meshes;
 
-import graphics.materials.Material;
 
 /**
- * Subclass of Mesh class.
- * Defines a Cube mesh by overloading Mesh's 3D position, UV texture coordinates and normals
- *
+ * Defines a Cube mesh.
+ * Singleton pattern used to ensure only 1 set of buffers is created for the cube data.
  */
 public class CubeMesh extends Mesh {
 
-    public CubeMesh() {
+    private static CubeMesh instance = null;
+
+    private CubeMesh() {
         super();
         initialize();
     }
 
-    public CubeMesh(Material material) {
-        super(material);
-        initialize();
+    public static CubeMesh getInstance(){
+        if(instance == null){
+            instance = new CubeMesh();
+        }
+        return instance;
     }
 
     @Override

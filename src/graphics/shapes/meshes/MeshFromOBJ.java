@@ -1,6 +1,4 @@
-package graphics.meshes;
-
-import graphics.materials.Material;
+package graphics.shapes.meshes;
 
 class MeshFromOBJ extends Mesh {
     private float[] vPositions;
@@ -10,15 +8,6 @@ class MeshFromOBJ extends Mesh {
 
     MeshFromOBJ(float[] vPositions, int[] vIndeces, float[] vNormals, float[] texCoords){
         super();
-        this.vPositions = vPositions;
-        this.vIndeces = vIndeces;
-        this.vNormals = vNormals;
-        this.texCoords = texCoords;
-        initialize();
-    }
-
-    MeshFromOBJ(float[] vPositions, int[] vIndeces, float[] vNormals, float[] texCoords, Material material){
-        super(material);
         this.vPositions = vPositions;
         this.vIndeces = vIndeces;
         this.vNormals = vNormals;

@@ -1,20 +1,22 @@
-package graphics.meshes;
-
-import graphics.materials.Material;
+package graphics.shapes.meshes;
 
 /**
- * Represents a square.
+ * Defines a square mesh.
  */
 public class SquareMesh extends Mesh {
 
-    public SquareMesh(){
+    private static SquareMesh instance = null;
+
+    private SquareMesh() {
         super();
         initialize();
     }
 
-    public SquareMesh(Material material){
-        super(material);
-        initialize();
+    public static SquareMesh getInstance(){
+        if(instance == null){
+            instance = new SquareMesh();
+        }
+        return instance;
     }
 
     @Override

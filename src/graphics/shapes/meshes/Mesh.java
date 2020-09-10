@@ -1,12 +1,4 @@
-package graphics.meshes;
-
-import graphics.materials.Material;
-import graphics.shaders.ShaderProgram;
-import graphics.textures.Texture;
-import graphics.textures.TextureType;
-
-import java.util.ArrayList;
-import java.util.List;
+package graphics.shapes.meshes;
 
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.*;
@@ -25,7 +17,6 @@ public abstract class Mesh {
     private int texHandle;
     private int num_of_triangles;
     private int eboHandle;
-    private Material material;
 
     // abstract methods -- subclasses should implement them
     abstract float[]  initializeVertexPositions();
@@ -34,11 +25,6 @@ public abstract class Mesh {
     abstract float[]  initializeTextureCoordinates();
 
     public Mesh(){
-        material = new Material();
-    }
-
-    public Mesh(Material material){
-        this.material = material;
     }
 
      /**
@@ -97,21 +83,6 @@ public abstract class Mesh {
         glBindVertexArray(vaoHandle);
         glDrawElements(GL_TRIANGLES, num_of_triangles, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
-    }
-
-    /**
-     * Bind the Mesh's material's textures to the appropriate texture units.
-     */
-    public void bindMaterialTextures(){
-        material.bindTextures();
-    }
-
-    /**
-     * Bind the mesh's material's textures to the appropriate sampler2D in the given shader program.
-     * @param shader {@link ShaderProgram} to which to upload textures.
-     */
-    public void uploadMaterialToShader(ShaderProgram shader) {
-        material.uploadToShader(shader);
     }
 
     public void deallocateResources(){

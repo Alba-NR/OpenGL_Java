@@ -6,11 +6,10 @@ import graphics.lights.DirLight;
 import graphics.lights.FlashLight;
 import graphics.lights.PointLight;
 import graphics.materials.Material;
-import graphics.meshes.CubeMesh;
-import graphics.meshes.Mesh;
-import graphics.meshes.ModelLoader;
+import graphics.shapes.Cube;
 import graphics.shaders.Shader;
 import graphics.shaders.ShaderProgram;
+import graphics.shapes.Shape;
 import graphics.textures.Texture;
 import graphics.textures.TextureType;
 import org.joml.Matrix4f;
@@ -35,8 +34,8 @@ public class Main {
     private long window;        // window handle
     private ShaderProgram cubeShaderProgram;  // shader prog to use for cubes
     private ShaderProgram lightShaderProgram;  // shader prog to use for light cube
-    private CubeMesh cubeMesh;  // cube mesh
-    private Mesh customMesh;    // custom mesh from OBJ file
+    private Cube cube;            // cube
+    private Shape customShape;    // custom shape from OBJ file
 
     final private int SCR_WIDTH = 1200;  // screen size settings
     final private int SCR_HEIGHT = 900;
@@ -128,10 +127,10 @@ public class Main {
 
         // --- set up vertex data & buffers, config mesh's VAO & VBO and link vertex attributes ---
 
-        cubeMesh = new CubeMesh();  // for point lights
+        cube = new Cube();  // for point lights
         // --- config light's VAO & VBO (vbo same bc light is a cube atm) ---
         // Note: rendering a cube to repr the light source, to explicitly see it's position in the scene
-        lightShaderProgram.bindDataToShader(0, cubeMesh.getVertexVBOHandle(), 3);
+        lightShaderProgram.bindDataToShader(0, cube.getMesh().getVertexVBOHandle(), 3);
 
         // custom mesh
 
@@ -142,10 +141,10 @@ public class Main {
         );
         Material material = new Material(texList);
         //customMesh = ModelLoader.loadModel("./resources/models/cargo_container.obj", material);
-        customMesh = new CubeMesh(material);
-        cubeShaderProgram.bindDataToShader(0, customMesh.getVertexVBOHandle(), 3);
-        cubeShaderProgram.bindDataToShader(1, customMesh.getNormalHandle(), 3);
-        cubeShaderProgram.bindDataToShader(2, customMesh.getTexHandle(), 2);
+        customShape = new Cube(material);
+        cubeShaderProgram.bindDataToShader(0, customShape.getMesh().getVertexVBOHandle(), 3);
+        cubeShaderProgram.bindDataToShader(1, customShape.getMesh().getNormalHandle(), 3);
+        cubeShaderProgram.bindDataToShader(2, customShape.getMesh().getTexHandle(), 2);
 
 
         // --- unbind...
@@ -229,7 +228,7 @@ public class Main {
 
 
         // --- set-up custom mesh material ---
-        customMesh.uploadMaterialToShader(cubeShaderProgram);
+        customShape.uploadMaterialToShader(cubeShaderProgram);
 
         // --- calc model matrix ---
         Matrix4f model = new Matrix4f();
@@ -268,7 +267,7 @@ public class Main {
             } else cubeShaderProgram.uploadInt("flashLightIsON", 0);
 
             // textures
-            customMesh.bindMaterialTextures(); //todo
+            customShape.bindMaterialTextures();
 
             // calc view matrix
             Matrix4f view = camera.calcLookAt();
@@ -288,12 +287,12 @@ public class Main {
             cubeShaderProgram.uploadMatrix4f("normal_m", normalM);
 
             // draw cube mesh as triangles
-            customMesh.render();
+            customShape.getMesh().render();
 
             glBindVertexArray(0);       // remove the binding
 
             // render light cube objects for point graphics.lights
-            glBindVertexArray(cubeMesh.getVAOHandle());
+            glBindVertexArray(cube.getMesh().getVAOHandle());
             lightShaderProgram.use();
 
             for(int i = 0; i < pointLightPositions.length; i++) {
@@ -307,7 +306,7 @@ public class Main {
                 mvp.mul(view).mul(lightModel);
                 lightShaderProgram.uploadMatrix4f("mvp_m", mvp);
 
-                cubeMesh.render();
+                cube.getMesh().render();
             }
             glBindVertexArray(0);       // remove the binding
 
@@ -351,8 +350,8 @@ public class Main {
         glfwDestroyWindow(window);
 
         // de-allocate all resources
-        cubeMesh.deallocateResources();
-        customMesh.deallocateResources();
+        cube.getMesh().deallocateResources();
+        customShape.getMesh().deallocateResources();
         cubeShaderProgram.delete();
         lightShaderProgram.delete();
 
