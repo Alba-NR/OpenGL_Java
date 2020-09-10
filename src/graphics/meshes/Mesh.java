@@ -1,5 +1,6 @@
 package graphics.meshes;
 
+import graphics.materials.Material;
 import graphics.shaders.ShaderProgram;
 import graphics.textures.Texture;
 import graphics.textures.TextureType;
@@ -24,7 +25,7 @@ public abstract class Mesh {
     private int texHandle;
     private int num_of_triangles;
     private int eboHandle;
-    private List<Texture> texturesList;
+    private Material material;
 
     // abstract methods -- subclasses should implement them
     abstract float[]  initializeVertexPositions();
@@ -33,11 +34,11 @@ public abstract class Mesh {
     abstract float[]  initializeTextureCoordinates();
 
     public Mesh(){
-        texturesList = new ArrayList<>();
+        material = new Material();
     }
 
-    public Mesh(List<Texture> texList){
-        texturesList = List.copyOf(texList);
+    public Mesh(Material material){
+        this.material = material;
     }
 
      /**
@@ -99,43 +100,18 @@ public abstract class Mesh {
     }
 
     /**
-     * Bind the mesh's textures to the appropriate sampler2D in the given shader program.
-     * Currently: upload to attrib of 'material' Material uniform.
-     *      DIFFUSE textures to material.diffuse_texN
-     *      SPECULAR textures to material.specular_texN
-     * @param shader {@link ShaderProgram} to which to upload textures.
+     * Bind the Mesh's material's textures to the appropriate texture units.
      */
-    public void uploadTextures(ShaderProgram shader){
-        int diffNum = 1;
-        int specNum = 1;
-
-        for(int i = 0; i < texturesList.size(); i++) {
-            // determine name of uniform to which to upload texture
-            int num = 0;
-            TextureType texType = texturesList.get(i).getType();
-            String typeString = "diffuse_tex";
-            switch (texType){
-                case DIFFUSE:
-                    num = diffNum++;
-                    //typeString = "diffuse_tex";
-                    break;
-                case SPECULAR:
-                    num = specNum++;
-                    typeString = "specular_tex";
-                    break;
-            }
-            shader.uploadInt("material." + typeString + num, i);     // upload texture
-        }
+    public void bindMaterialTextures(){
+        material.bindTextures();
     }
 
     /**
-     * Bind the Mesh's textures to the appropriate texture units.
+     * Bind the mesh's material's textures to the appropriate sampler2D in the given shader program.
+     * @param shader {@link ShaderProgram} to which to upload textures.
      */
-    public void bindTextures(){
-        for(int i = 0; i < texturesList.size(); i++) {
-            glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
-            glBindTexture(GL_TEXTURE_2D, texturesList.get(i).getHandle());  // bind texture to appropriate texture unit
-        }
+    public void uploadMaterialToShader(ShaderProgram shader) {
+        material.uploadToShader(shader);
     }
 
     public void deallocateResources(){
@@ -163,12 +139,5 @@ public abstract class Mesh {
     }
     public int getEboHandle() {
         return eboHandle;
-    }
-    public List<Texture> getTexturesList() {
-        return List.copyOf(texturesList);
-    }
-
-    public void setTexturesList(List<Texture> texturesList) {
-        this.texturesList = List.copyOf(texturesList);
     }
 }

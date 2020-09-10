@@ -1,5 +1,7 @@
 package graphics.meshes;
 
+import graphics.materials.Material;
+
 /**
  * Represents a square.
  */
@@ -7,6 +9,11 @@ public class SquareMesh extends Mesh {
 
     public SquareMesh(){
         super();
+        initialize();
+    }
+
+    public SquareMesh(Material material){
+        super(material);
         initialize();
     }
 

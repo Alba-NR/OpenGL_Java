@@ -1,8 +1,6 @@
 package graphics.meshes;
 
-import graphics.textures.Texture;
-
-import java.util.List;
+import graphics.materials.Material;
 
 /**
  * Subclass of Mesh class.
@@ -16,8 +14,8 @@ public class CubeMesh extends Mesh {
         initialize();
     }
 
-    public CubeMesh(List<Texture> texturesList) {
-        super(texturesList);
+    public CubeMesh(Material material) {
+        super(material);
         initialize();
     }
 

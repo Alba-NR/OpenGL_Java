@@ -1,5 +1,6 @@
 package graphics.meshes;
 
+import graphics.materials.Material;
 import graphics.textures.Texture;
 import org.lwjgl.assimp.*;
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 public class ModelLoader {
 
-    public static Mesh loadModel(String filePath, List<Texture> texturesList){
+    public static Mesh loadModel(String filePath, Material material){
         // create assimp scene obj
         AIScene scene = Assimp.aiImportFile(filePath,
                 Assimp.aiProcess_Triangulate |
@@ -65,6 +66,6 @@ public class ModelLoader {
         }
 
         // return Mesh obj
-        return new MeshFromOBJ(vPositions, vIndeces, vNormals, texCoords, texturesList);
+        return new MeshFromOBJ(vPositions, vIndeces, vNormals, texCoords, material);
     }
 }

@@ -1,16 +1,14 @@
 package graphics.meshes;
 
-import graphics.textures.Texture;
+import graphics.materials.Material;
 
-import java.util.List;
-
-public class MeshFromOBJ extends Mesh {
+class MeshFromOBJ extends Mesh {
     private float[] vPositions;
     private int[] vIndeces;
     private float[] vNormals;
     private float[] texCoords;
 
-    public MeshFromOBJ(float[] vPositions, int[] vIndeces, float[] vNormals, float[] texCoords){
+    MeshFromOBJ(float[] vPositions, int[] vIndeces, float[] vNormals, float[] texCoords){
         super();
         this.vPositions = vPositions;
         this.vIndeces = vIndeces;
@@ -19,8 +17,8 @@ public class MeshFromOBJ extends Mesh {
         initialize();
     }
 
-    public MeshFromOBJ(float[] vPositions, int[] vIndeces, float[] vNormals, float[] texCoords, List<Texture> texturesList){
-        super(texturesList);
+    MeshFromOBJ(float[] vPositions, int[] vIndeces, float[] vNormals, float[] texCoords, Material material){
+        super(material);
         this.vPositions = vPositions;
         this.vIndeces = vIndeces;
         this.vNormals = vNormals;

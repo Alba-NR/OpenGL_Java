@@ -5,10 +5,10 @@ import graphics.camera.CameraMovement;
 import graphics.lights.DirLight;
 import graphics.lights.FlashLight;
 import graphics.lights.PointLight;
+import graphics.materials.Material;
 import graphics.meshes.CubeMesh;
 import graphics.meshes.Mesh;
 import graphics.meshes.ModelLoader;
-import graphics.meshes.SquareMesh;
 import graphics.shaders.Shader;
 import graphics.shaders.ShaderProgram;
 import graphics.textures.Texture;
@@ -111,9 +111,10 @@ public class Main {
         // --- set up shaders ---
 
         // create cube vertex shader
-        Shader cubeVertexShader = new Shader(GL_VERTEX_SHADER, "./resources/shaders/cube_vertex_shader.glsl");
+        Shader cubeVertexShader = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_vertex_shader.glsl");
         // create cube fragment shader
-        Shader cubeFragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/cube_fragment_shader.glsl");
+        //Shader cubeFragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_withColour_fragment_shader.glsl");
+        Shader cubeFragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_withTexture_fragment_shader.glsl");
         // create cube shader program
         cubeShaderProgram = new ShaderProgram(cubeVertexShader, cubeFragmentShader);
 
@@ -133,11 +134,15 @@ public class Main {
         lightShaderProgram.bindDataToShader(0, cubeMesh.getVertexVBOHandle(), 3);
 
         // custom mesh
+
+        //Material material = new Material();
         List<Texture> texList = Arrays.asList(
-                new Texture("./resources/textures/cargo_container.jpg", false, TextureType.DIFFUSE)
+                new Texture("./resources/textures/container2.png", false, TextureType.DIFFUSE),
+                new Texture("./resources/textures/container2_specular.png", false, TextureType.SPECULAR)
         );
-        customMesh = ModelLoader.loadModel("./resources/models/cargo_container.obj", texList);
-        //customMesh = new SquareMesh();
+        Material material = new Material(texList);
+        //customMesh = ModelLoader.loadModel("./resources/models/cargo_container.obj", material);
+        customMesh = new CubeMesh(material);
         cubeShaderProgram.bindDataToShader(0, customMesh.getVertexVBOHandle(), 3);
         cubeShaderProgram.bindDataToShader(1, customMesh.getNormalHandle(), 3);
         cubeShaderProgram.bindDataToShader(2, customMesh.getTexHandle(), 2);
@@ -180,7 +185,7 @@ public class Main {
         // point graphics.lights
         Vector3f[] pointLightPositions = {
                 new Vector3f( 0.7f,  2.0f,  2.0f),
-                new Vector3f( 2.3f, 0.3f, -4.0f),
+                new Vector3f( 2.3f, 2.3f, -4.0f),
                 new Vector3f(-4.0f,  2.0f, -4.0f)
         };
         Vector3f[] pointLightColours = {
@@ -224,19 +229,11 @@ public class Main {
 
 
         // --- set-up custom mesh material ---
-        cubeShaderProgram.uploadFloat("material.K_a", 0.5f);
-        cubeShaderProgram.uploadFloat("material.K_diff", 0.4f);
-        cubeShaderProgram.uploadFloat("material.K_spec", 0.8f);
-        cubeShaderProgram.uploadFloat("material.shininess", 64.0f);
+        customMesh.uploadMaterialToShader(cubeShaderProgram);
 
         // --- calc model matrix ---
         Matrix4f model = new Matrix4f();
         model.translate(0.0f, 0.0f, 0.0f);
-        /*
-        model.scale(20)
-                .rotateAffine((float)Math.toRadians(90), 1.0f, 0.0f, 0.0f)
-                .translate(new Vector3f(0.0f,  0.0f, 0.1f));
-         */
         cubeShaderProgram.uploadMatrix4f("model_m", model);
 
         // --- (per frame info...) ---
@@ -271,7 +268,7 @@ public class Main {
             } else cubeShaderProgram.uploadInt("flashLightIsON", 0);
 
             // textures
-            customMesh.bindTextures(); //todo
+            customMesh.bindMaterialTextures(); //todo
 
             // calc view matrix
             Matrix4f view = camera.calcLookAt();
