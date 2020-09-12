@@ -17,6 +17,8 @@ public abstract class Mesh {
     private int texHandle;
     private int num_of_triangles;
     private int eboHandle;
+    private int GLFrontFaceWinding;
+    private boolean useFaceCulling;
 
     // abstract methods -- subclasses should implement them
     abstract float[]  initializeVertexPositions();
@@ -24,7 +26,9 @@ public abstract class Mesh {
     abstract float[]  initializeVertexNormals();
     abstract float[]  initializeTextureCoordinates();
 
-    public Mesh(){
+    public Mesh(int GLFrontFaceWinding, boolean useFaceCulling){
+        this.GLFrontFaceWinding = GLFrontFaceWinding;
+        this.useFaceCulling = useFaceCulling;
     }
 
      /**
@@ -79,10 +83,15 @@ public abstract class Mesh {
      * Draw the mesh using the currently active shader program.
      */
     public void render(){
+        if(!useFaceCulling) glDisable(GL_CULL_FACE);    // disable face culling
+        else glFrontFace(GLFrontFaceWinding);           // set front facing faces winding (for back face culling)
+
         // draw mesh
         glBindVertexArray(vaoHandle);
         glDrawElements(GL_TRIANGLES, num_of_triangles, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
+
+        if(!useFaceCulling) glEnable(GL_CULL_FACE);     // enable face culling again (bc default is enabled)
     }
 
     public void deallocateResources(){
@@ -110,5 +119,12 @@ public abstract class Mesh {
     }
     public int getEboHandle() {
         return eboHandle;
+    }
+
+    public void setGLFrontFaceWinding(int GLFrontFaceWinding) {
+        this.GLFrontFaceWinding = GLFrontFaceWinding;
+    }
+    public void setUseFaceCulling(boolean useFaceCulling) {
+        this.useFaceCulling = useFaceCulling;
     }
 }

@@ -1,5 +1,6 @@
 package graphics.shapes.meshes;
 
+import static org.lwjgl.opengl.GL30.*;
 
 /**
  * Defines a Cube mesh.
@@ -10,7 +11,7 @@ public class CubeMesh extends Mesh {
     private static CubeMesh instance = null;
 
     private CubeMesh() {
-        super();
+        super(GL_CW, true);
         initialize();
     }
 
@@ -24,6 +25,7 @@ public class CubeMesh extends Mesh {
     @Override
     float[] initializeVertexPositions() {
         return new float[] {
+                //back face
                 -0.5f, -0.5f, -0.5f,
                 0.5f, -0.5f, -0.5f,
                 0.5f,  0.5f, -0.5f,
@@ -31,20 +33,23 @@ public class CubeMesh extends Mesh {
                 -0.5f,  0.5f, -0.5f,
                 -0.5f, -0.5f, -0.5f,
 
+                // front face
                 -0.5f, -0.5f,  0.5f,
+                0.5f,  0.5f,  0.5f,
                 0.5f, -0.5f,  0.5f,
                 0.5f,  0.5f,  0.5f,
-                0.5f,  0.5f,  0.5f,
-                -0.5f,  0.5f,  0.5f,
                 -0.5f, -0.5f,  0.5f,
-
                 -0.5f,  0.5f,  0.5f,
+
+                // left face
+                -0.5f,  0.5f,  0.5f,
+                -0.5f, -0.5f, -0.5f,
                 -0.5f,  0.5f, -0.5f,
                 -0.5f, -0.5f, -0.5f,
-                -0.5f, -0.5f, -0.5f,
-                -0.5f, -0.5f,  0.5f,
                 -0.5f,  0.5f,  0.5f,
+                -0.5f, -0.5f,  0.5f,
 
+                // right face
                 0.5f,  0.5f,  0.5f,
                 0.5f,  0.5f, -0.5f,
                 0.5f, -0.5f, -0.5f,
@@ -52,13 +57,15 @@ public class CubeMesh extends Mesh {
                 0.5f, -0.5f,  0.5f,
                 0.5f,  0.5f,  0.5f,
 
+                // bottom face
                 -0.5f, -0.5f, -0.5f,
+                0.5f, -0.5f,  0.5f,
                 0.5f, -0.5f, -0.5f,
                 0.5f, -0.5f,  0.5f,
-                0.5f, -0.5f,  0.5f,
-                -0.5f, -0.5f,  0.5f,
                 -0.5f, -0.5f, -0.5f,
+                -0.5f, -0.5f,  0.5f,
 
+                // top face
                 -0.5f,  0.5f, -0.5f,
                 0.5f,  0.5f, -0.5f,
                 0.5f,  0.5f,  0.5f,
@@ -135,10 +142,17 @@ public class CubeMesh extends Mesh {
                 0.0f, 0.0f,
 
                 0.0f, 0.0f,
+                1.0f, 1.0f,
                 1.0f, 0.0f,
                 1.0f, 1.0f,
+                0.0f, 0.0f,
+                0.0f, 1.0f,
+
+                1.0f, 0.0f,
+                0.0f, 1.0f,
                 1.0f, 1.0f,
                 0.0f, 1.0f,
+                1.0f, 0.0f,
                 0.0f, 0.0f,
 
                 1.0f, 0.0f,
@@ -148,19 +162,12 @@ public class CubeMesh extends Mesh {
                 0.0f, 0.0f,
                 1.0f, 0.0f,
 
+                0.0f, 1.0f,
                 1.0f, 0.0f,
                 1.0f, 1.0f,
-                0.0f, 1.0f,
+                1.0f, 0.0f,
                 0.0f, 1.0f,
                 0.0f, 0.0f,
-                1.0f, 0.0f,
-
-                0.0f, 1.0f,
-                1.0f, 1.0f,
-                1.0f, 0.0f,
-                1.0f, 0.0f,
-                0.0f, 0.0f,
-                0.0f, 1.0f,
 
                 0.0f, 1.0f,
                 1.0f, 1.0f,

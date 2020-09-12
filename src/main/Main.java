@@ -10,6 +10,8 @@ import graphics.shapes.Cube;
 import graphics.shaders.Shader;
 import graphics.shaders.ShaderProgram;
 import graphics.shapes.Shape;
+import graphics.shapes.ShapeFromOBJ;
+import graphics.shapes.Square;
 import graphics.textures.Texture;
 import graphics.textures.TextureType;
 import org.joml.Matrix4f;
@@ -70,7 +72,10 @@ public class Main {
         createCapabilities();  // necessary here
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);   // set OpenGL window (OpenGL will render in this viewport)
 
-        glEnable(GL_DEPTH_TEST); // enable depth testing
+        glEnable(GL_DEPTH_TEST);    // enable depth testing
+        glEnable(GL_CULL_FACE);     // enable culling
+        glCullFace(GL_BACK);        // cull back faces
+        glFrontFace(GL_CCW);        // initially set front faces as those w/counter clockwise winding
 
         // --- callback functions registered after window is created & before render loop is init ---
 
@@ -140,8 +145,7 @@ public class Main {
                 new Texture("./resources/textures/container2_specular.png", false, TextureType.SPECULAR)
         );
         Material material = new Material(texList);
-        //customMesh = ModelLoader.loadModel("./resources/models/cargo_container.obj", material);
-        customShape = new Cube(material);
+        customShape = new Cube(material); // new Square(material); //new ShapeFromOBJ("./resources/models/cargo_container.obj", material, true);
         cubeShaderProgram.bindDataToShader(0, customShape.getMesh().getVertexVBOHandle(), 3);
         cubeShaderProgram.bindDataToShader(1, customShape.getMesh().getNormalHandle(), 3);
         cubeShaderProgram.bindDataToShader(2, customShape.getMesh().getTexHandle(), 2);
@@ -232,7 +236,12 @@ public class Main {
 
         // --- calc model matrix ---
         Matrix4f model = new Matrix4f();
-        model.translate(0.0f, 0.0f, 0.0f);
+        model.translate(-1.0f, -1.0f, -1.0f);
+        /* // for square shape, as if floor
+        model.scale(20)
+                .rotateAffine((float)Math.toRadians(90), 1.0f, 0.0f, 0.0f)
+                .translate(new Vector3f(0.0f,  0.0f, 0.1f));
+         */
         cubeShaderProgram.uploadMatrix4f("model_m", model);
 
         // --- (per frame info...) ---

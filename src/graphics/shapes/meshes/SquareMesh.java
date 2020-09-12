@@ -1,5 +1,7 @@
 package graphics.shapes.meshes;
 
+import static org.lwjgl.opengl.GL30.*;
+
 /**
  * Defines a square mesh.
  */
@@ -8,7 +10,7 @@ public class SquareMesh extends Mesh {
     private static SquareMesh instance = null;
 
     private SquareMesh() {
-        super();
+        super(GL_CW, false);
         initialize();
     }
 

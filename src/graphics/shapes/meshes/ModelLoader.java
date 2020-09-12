@@ -10,7 +10,7 @@ public class ModelLoader {
 
     private static Map<String, MeshFromOBJ> mapFilenameToInstance = new HashMap<>();
 
-    public static Mesh loadModel(String filePath){
+    public static Mesh loadModel(String filePath, boolean useFaceCulling){
         MeshFromOBJ returnValue = mapFilenameToInstance.getOrDefault(filePath, null);
 
         if( returnValue == null) {
@@ -70,7 +70,7 @@ public class ModelLoader {
             }
 
             // return Mesh obj
-            returnValue = new MeshFromOBJ(vPositions, vIndeces, vNormals, texCoords);
+            returnValue = new MeshFromOBJ(vPositions, vIndeces, vNormals, texCoords, useFaceCulling);
 
             // place into map
             mapFilenameToInstance.put(filePath, returnValue);
