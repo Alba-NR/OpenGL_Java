@@ -1,5 +1,6 @@
 package main;
 
+import engine.WindowManager;
 import graphics.camera.Camera;
 import graphics.camera.CameraMovement;
 import graphics.lights.DirLight;
@@ -21,11 +22,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
@@ -33,14 +31,13 @@ import static org.lwjgl.opengl.GL30.*;
 
 public class Main {
 
-    private long window;        // window handle
     private ShaderProgram cubeShaderProgram;  // shader prog to use for cubes
     private ShaderProgram lightShaderProgram;  // shader prog to use for light cube
     private Cube cube;            // cube
     private Shape customShape;    // custom shape from OBJ file
 
-    final private int SCR_WIDTH = 1200;  // screen size settings
-    final private int SCR_HEIGHT = 900;
+    final private int SCR_WIDTH = WindowManager.getScrWidth();  // screen size settings
+    final private int SCR_HEIGHT = WindowManager.getScrHeight();
 
     private Camera camera = new Camera();   // camera & mouse
     private double lastX = SCR_WIDTH / 2.0f, lastY = SCR_HEIGHT / 2.0f;
@@ -55,22 +52,9 @@ public class Main {
         // --- init & config GLFW ---
         if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW");
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-
-        // --- GLFW window creation ---
-        window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "learning", NULL, NULL);
-        if(window == NULL){
-            glfwTerminate();
-            throw new RuntimeException("Failed to create the GLFW window");
-        }
-        // make the OpenGL context current
-        glfwMakeContextCurrent(window);
-        createCapabilities();  // necessary here
-        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);   // set OpenGL window (OpenGL will render in this viewport)
+        // --- GLFW window creation (& init GLFW context)---
+        WindowManager.createWindow();
+        long win = WindowManager.getWindowHandle();
 
         glEnable(GL_DEPTH_TEST);    // enable depth testing
         glEnable(GL_CULL_FACE);     // enable culling
@@ -80,9 +64,9 @@ public class Main {
         // --- callback functions registered after window is created & before render loop is init ---
 
         // whenever window is resized, call given funct -- adjusts viewport
-        glfwSetFramebufferSizeCallback(window, (long window, int width, int height) -> glViewport(0, 0, width, height));
+        glfwSetFramebufferSizeCallback(win, (long window, int width, int height) -> glViewport(0, 0, width, height));
         // whenever key is pressed, repeated or released.
-        glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
+        glfwSetKeyCallback(win, (window, key, scancode, action, mods) -> {
             if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE ) // close window when esc key is released
                 glfwSetWindowShouldClose(window, true);
             if (key == GLFW_KEY_E) { // view in wireframe mode whilst E is pressed
@@ -91,8 +75,8 @@ public class Main {
             }
             // AWSD used to move camera (in processArrowsInput() method)
         });
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // use mouse
-        glfwSetCursorPosCallback(window, (long window, double xpos, double ypos) -> {
+        glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // use mouse
+        glfwSetCursorPosCallback(win, (long window, double xpos, double ypos) -> {
             if (firstMouse) {
                 lastX = xpos;
                 lastY = ypos;
@@ -105,12 +89,12 @@ public class Main {
 
             camera.processMouseMovement(xoffset, yoffset, true);
         });
-        glfwSetScrollCallback(window, (long window, double xoffset, double yoffset) -> { // 'zoom' illusion when scroll w/mouse
+        glfwSetScrollCallback(win, (long window, double xoffset, double yoffset) -> { // 'zoom' illusion when scroll w/mouse
             camera.processMouseScroll(yoffset);
         });
 
         // make window visible
-        glfwShowWindow(window);
+        WindowManager.makeWindowVisible();
 
         // --- set up shaders ---
 
@@ -248,10 +232,10 @@ public class Main {
         float deltaTime;	        // Time between current frame and last frame
         float lastFrameT = 0.0f;    // Time of last frame
 
-        int currentKeyFState = glfwGetKey(window, GLFW_KEY_F); // get current state of F key (for flashlight)
+        int currentKeyFState = WindowManager.getKeyState(GLFW_KEY_F); // get current state of F key (for flashlight)
 
         // --- repeat while GLFW isn't instructed to close ---
-        while(!glfwWindowShouldClose(window)){
+        while(!WindowManager.windowShouldClose()){
             // --- per-frame time logic ---
             float currentFrameT = (float) glfwGetTime();
             deltaTime = currentFrameT - lastFrameT;
@@ -320,7 +304,7 @@ public class Main {
             glBindVertexArray(0);       // remove the binding
 
             // --- check events & swap buffers ---
-            glfwSwapBuffers(window);    // swap back & front buffers
+            WindowManager.updateWindow();
             glfwPollEvents();           // checks if any events are triggered, updates window state, & calls corresponding funcs
         }
     }
@@ -330,12 +314,12 @@ public class Main {
      */
     private void processAWSDInput(float deltaTime){
         // camera movement using AWSD
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.FORWARD, deltaTime);
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.BACKWARD, deltaTime);
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.LEFT, deltaTime);
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.RIGHT, deltaTime);
-        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.DOWNWARD, deltaTime);
-        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.UPWARD, deltaTime);
+        if (WindowManager.getKeyState(GLFW_KEY_W) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.FORWARD, deltaTime);
+        if (WindowManager.getKeyState(GLFW_KEY_S) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.BACKWARD, deltaTime);
+        if (WindowManager.getKeyState(GLFW_KEY_A) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.LEFT, deltaTime);
+        if (WindowManager.getKeyState(GLFW_KEY_D) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.RIGHT, deltaTime);
+        if (WindowManager.getKeyState(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.DOWNWARD, deltaTime);
+        if (WindowManager.getKeyState(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera.processKeyboardInput(CameraMovement.UPWARD, deltaTime);
     }
 
     /**
@@ -344,7 +328,7 @@ public class Main {
      * @return the new GLFW state of the F key
      */
     public int processFlashLightToggle(FlashLight flashLight, int currentFKeyState){
-        int newKeyState = glfwGetKey(window, GLFW_KEY_F);
+        int newKeyState = WindowManager.getKeyState(GLFW_KEY_F);
         if (currentFKeyState == GLFW_PRESS && newKeyState == GLFW_RELEASE) flashLight.toggle();
         return  newKeyState;
     }
@@ -354,9 +338,7 @@ public class Main {
      */
     public void terminate(){
 
-        // free the window callbacks & destroy the window
-        glfwFreeCallbacks(window);
-        glfwDestroyWindow(window);
+        WindowManager.closeWindow();
 
         // de-allocate all resources
         cube.getMesh().deallocateResources();
