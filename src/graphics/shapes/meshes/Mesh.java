@@ -26,7 +26,7 @@ public abstract class Mesh {
     abstract float[]  initializeVertexNormals();
     abstract float[]  initializeTextureCoordinates();
 
-    public Mesh(int GLFrontFaceWinding, boolean useFaceCulling){
+    Mesh(int GLFrontFaceWinding, boolean useFaceCulling){
         this.GLFrontFaceWinding = GLFrontFaceWinding;
         this.useFaceCulling = useFaceCulling;
     }
@@ -34,7 +34,7 @@ public abstract class Mesh {
      /**
      * Initialise mesh. Must be called before using mesh.
      */
-    public void initialize() {
+     void initialize() {
 
         float[] vertPositions = initializeVertexPositions();
         int[] indices = initializeVertexIndices();
