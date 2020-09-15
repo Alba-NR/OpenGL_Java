@@ -6,6 +6,8 @@ import graphics.shaders.ShaderProgram;
 import graphics.shapes.Cube;
 import org.joml.Matrix4f;
 
+import static org.lwjgl.opengl.GL30.glBindVertexArray;
+
 public class PointLightRenderer extends Renderer {
     private Cube cube;
 
@@ -19,6 +21,7 @@ public class PointLightRenderer extends Renderer {
 
         // bind mesh data
         cube = new Cube();
+        glBindVertexArray(cube.getMesh().getVAOHandle()); //todo
         shaderProgram.bindDataToShader(0, cube.getMesh().getVertexVBOHandle(), 3);
     }
 

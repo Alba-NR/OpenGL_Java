@@ -6,6 +6,8 @@ import graphics.shapes.Shape;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import static org.lwjgl.opengl.GL30.glBindVertexArray;
+
 /**
  * Represents an entity (node in the scene node graph) which
  * has a shape and hence can be rendered.
@@ -20,6 +22,8 @@ public class DrawableEntity extends Entity {
 
     @Override
     public void render(ShaderProgram shaderProgram) {
+        glBindVertexArray(shape.getMesh().getVAOHandle()); //todo
+
         // bind data to shader
         shaderProgram.bindDataToShader(0, shape.getMesh().getVertexVBOHandle(), 3);
         shaderProgram.bindDataToShader(1, shape.getMesh().getNormalHandle(), 3);

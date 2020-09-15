@@ -23,7 +23,7 @@ public class Camera {
 
     public Camera(){
         this.cameraPos = new Vector3f(0,0,0);
-        this.cameraFront =  new Vector3f(0.0f, 0.0f, 1.0f);
+        this.cameraFront =  new Vector3f(0.0f, 0.0f, -1.0f);
         this.cameraUp =  new Vector3f(0.0f, 1.0f, 0.0f);
     }
 

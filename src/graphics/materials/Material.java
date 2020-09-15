@@ -17,7 +17,7 @@ public class Material {
     private Vector3f diffColour, specColour;
     private float K_a, K_diff, K_spec;
     private float shininess;
-    private List<Texture> texturesList;
+    private List<Texture> texturesList = null;
 
     public Material(){
         diffColour = new Vector3f(0.973f, 0.639f, 0.475f);  // coral orange colour
@@ -39,13 +39,22 @@ public class Material {
         texturesList = List.copyOf(texList);
     }
 
-    public Material(Vector3f diffColour, Vector3f specColour, float K_a, float K_diff, float K_spec, List<Texture> texList){
+    public Material(float K_a, float K_diff, float K_spec, Vector3f diffColour, Vector3f specColour){
         this.diffColour = diffColour;
         this.specColour = specColour;
         this.K_a = K_a;
         this.K_diff = K_diff;
         this.K_spec = K_spec;
-        this.texturesList = List.copyOf(texList);
+        texturesList = null;
+    }
+
+    public Material(float K_a, float K_diff, float K_spec, List<Texture> texList){
+        diffColour = null;
+        specColour = null;
+        this.K_a = K_a;
+        this.K_diff = K_diff;
+        this.K_spec = K_spec;
+        texturesList = List.copyOf(texList);
     }
 
     /**

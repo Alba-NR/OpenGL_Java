@@ -1,7 +1,6 @@
 package graphics.scene;
 
 import graphics.lights.*;
-import graphics.shaders.ShaderProgram;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
