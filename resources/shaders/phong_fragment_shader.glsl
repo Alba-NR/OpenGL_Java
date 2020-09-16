@@ -1,11 +1,13 @@
 #version 330 core
 
 struct Material {
-    vec3 diffuseColour;    // diffuse map (for diffuse colour)
-    vec3 specularColour;   // specular map (for specular reflection)
-    float K_a;
-    float K_diff;
-    float K_spec;
+    sampler2D diffuse_tex1;    // diffuse map (for diffuse colour)
+    sampler2D specular_tex1;   // specular map (for specular reflection)
+    vec3 diffuseColour;        // diffuse colour
+    vec3 specularColour;       // specular colour
+    float K_a;          // ambient reflection coefficient
+    float K_diff;       // diff reflection coeff
+    float K_spec;       // spec reflection coeff
     float shininess;    // shininness coeff (for specular reflection)
 };
 
@@ -46,12 +48,13 @@ in vec3 wc_fragPos; // fragment position in world coord
 out vec4 FragColor;
 
 #define MAX_POINT_LIGHTS 3
+uniform vec3 I_a;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform DirLight dirLight;
 uniform SpotLight spotLight;
 uniform Material material;
+uniform bool materialUsesTextures;
 uniform vec3 wc_cameraPos;
-uniform vec3 I_a;
 uniform bool flashLightIsON;
 
 // function prototypes
@@ -67,9 +70,16 @@ void main()
     vec3 N = normalize(wc_normal);
     vec3 V = normalize(wc_cameraPos - wc_fragPos);
 
-    // get diffuse & specular colours from textures (the maps...)
-    vec3 diffColour = material.diffuseColour;
-    vec3 specColour = material.specularColour;
+    // get diffuse & specular colours...
+    vec3 diffColour, specColour;
+    if(materialUsesTextures){
+        // ...from textures (the maps...)
+        diffColour = vec3(texture(material.diffuse_tex1, TexCoord));
+        specColour = vec3(texture(material.specular_tex1, TexCoord));
+    } else {
+        diffColour = material.diffuseColour;
+        specColour = material.specularColour;
+    }
 
     // Directional lighting
     I_result = CalcDirLight(dirLight, N, V, diffColour, specColour);

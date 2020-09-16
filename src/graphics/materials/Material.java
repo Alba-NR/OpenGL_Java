@@ -29,6 +29,16 @@ public class Material {
         texturesList = null;
     }
 
+    public Material(Vector3f diffColour, Vector3f specColour){
+        this.diffColour = diffColour;
+        this.specColour = specColour;
+        K_a = 0.5f;
+        K_diff = 0.4f;
+        K_spec = 0.8f;
+        shininess = 64f;
+        texturesList = null;
+    }
+
     public Material(List<Texture> texList){
         diffColour = null;
         specColour = null;
@@ -39,21 +49,23 @@ public class Material {
         texturesList = List.copyOf(texList);
     }
 
-    public Material(float K_a, float K_diff, float K_spec, Vector3f diffColour, Vector3f specColour){
+    public Material(float K_a, float K_diff, float K_spec, float shininess, Vector3f diffColour, Vector3f specColour){
         this.diffColour = diffColour;
         this.specColour = specColour;
         this.K_a = K_a;
         this.K_diff = K_diff;
         this.K_spec = K_spec;
+        this.shininess = shininess;
         texturesList = null;
     }
 
-    public Material(float K_a, float K_diff, float K_spec, List<Texture> texList){
+    public Material(float K_a, float K_diff, float K_spec, float shininess, List<Texture> texList){
         diffColour = null;
         specColour = null;
         this.K_a = K_a;
         this.K_diff = K_diff;
         this.K_spec = K_spec;
+        this.shininess = shininess;
         texturesList = List.copyOf(texList);
     }
 
@@ -68,9 +80,11 @@ public class Material {
         shader.uploadFloat("material.shininess", shininess);
 
         if(texturesList == null){ // upload colours
+            shader.uploadInt("materialUsesTextures", 0);
             shader.uploadVec3f("material.diffuseColour", diffColour);
             shader.uploadVec3f("material.specularColour", specColour);
         }else{  // upload textures
+            shader.uploadInt("materialUsesTextures", 1);
             uploadTexturesToShader(shader);
         }
     }

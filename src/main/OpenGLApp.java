@@ -38,8 +38,7 @@ import static org.lwjgl.opengl.GL30.*;
 
 class OpenGLApp {
 
-    private ShaderProgram phongTextureShaderProgram;    // phong shader program using diff & spec textures
-    private ShaderProgram phongColourShaderProgram;     // phong shader progr using diff & spec colours
+    private ShaderProgram phongTextureShaderProgram;    // phong shader program using diff & spec textures or colours
     private ShaderProgram lightShaderProgram;           // shader prog to use for light cubes
     private Scene scene;                                // scene to render
 
@@ -83,11 +82,9 @@ class OpenGLApp {
         // create phong vertex shader
         Shader phong_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_vertex_shader.glsl");
         // create phong fragment shader
-        Shader phong_plainColour_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_withColour_fragment_shader.glsl");
-        Shader phong_texture_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_withTexture_fragment_shader.glsl");
+        Shader phong_texture_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_fragment_shader.glsl");
         // create phong shader program
         phongTextureShaderProgram = new ShaderProgram(phong_vs, phong_texture_fs);
-        phongColourShaderProgram = new ShaderProgram(phong_vs, phong_plainColour_fs);
 
         // create light cube vertex shader
         Shader lightVertexShader = new Shader(GL_VERTEX_SHADER, "./resources/shaders/lightSource_vertex_shader.glsl");
@@ -104,7 +101,7 @@ class OpenGLApp {
         // --- set-up lights ---
 
         // directional light
-        DirLight dirLight = new DirLight(new Vector3f(1.0f, 1.0f, 1.0f), 1.0f, new Vector3f(-0.2f, -1.0f, -0.3f));
+        DirLight dirLight = new DirLight(new Vector3f(1.0f, 1.0f, 1.0f), 2.0f, new Vector3f(-0.2f, -1.0f, -0.3f));
 
         // flashlight spotlight
         FlashLight flashLight = new FlashLight(
@@ -175,26 +172,34 @@ class OpenGLApp {
         );
         Shape cube = new Cube(new Material(woodenCube_texList));
 
-        // calc local transform matrix for cube
+        // calc local transform matrix for cube 1
         Matrix4f cube1_local_transform = new Matrix4f();
-        cube1_local_transform.translate(-2.0f, 0.0f, -2.0f);
+        cube1_local_transform.translate(-2.0f, 0.0f, -2.0f)
+                .rotate((float) Math.toRadians(45), 0.0f, 1.0f, 0.0f);
 
         // create 1st cube entity
         Entity cube1_entity = new DrawableEntity(null, cube1_local_transform, new Vector3f(2.0f), cube);
 
-        // create 2nd cube entity
+        // calc local transform for 2nd cube entity
         Matrix4f cube2_local_transform = new Matrix4f();
-        cube2_local_transform.translate(0.0f, 0.75f, 0.0f);
+        cube2_local_transform.translate(0.0f, 0.75f, 0.0f)
+                .rotate((float) Math.toRadians(30), 0.0f, 1.0f, 0.0f);
 
         // create 2nd cube entity, child of 1st cube entity
         Entity cube2_entity = new DrawableEntity(cube1_entity, cube2_local_transform, new Vector3f(0.5f), cube);
         cube1_entity.addChild(cube2_entity);
 
+        // calc local transform for 3rd cube entity
+        Matrix4f cube3_local_transform = new Matrix4f();
+        cube3_local_transform.translate(2.0f, -0.2f, 0.0f)
+                .rotate((float) Math.toRadians(60), 0.0f, 1.0f, 0.0f);
+
+        // create 3rd cube entity, child of 1st cube entity
+        Entity cube3_entity = new DrawableEntity(cube1_entity, cube3_local_transform, new Vector3f(0.6f), cube);
+        cube1_entity.addChild(cube3_entity);
+
         // FLOOR PLANE
-        List<Texture> floor_texList = Arrays.asList(
-                new Texture("./resources/textures/container.jpg", false, TextureType.DIFFUSE)
-        );
-        Shape square = new Square(new Material(floor_texList));
+        Shape square = new Square(new Material(0.2f, 0.8f, 0.01f, 4f, new Vector3f((float) 50/255), new Vector3f(1f)));
 
         // calc local transform matrix for square
         Matrix4f floor_local_transform = new Matrix4f();
@@ -202,13 +207,19 @@ class OpenGLApp {
                 .rotate((float) Math.toRadians(90), 1.0f, 0.0f, 0.0f);
 
         // create floor entity
-        Entity floor = new DrawableEntity(null, floor_local_transform, new Vector3f(10), square);
+        Entity floor = new DrawableEntity(null, floor_local_transform, new Vector3f(30), square);
 
         // DRAGON
+        /*
         List<Texture> dragon_texList = Arrays.asList(
                 new Texture("./resources/textures/circuitry-albedo.png", false, TextureType.DIFFUSE)
         );
         Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(dragon_texList), false);
+         */
+        //Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(1.0f), new Vector3f(1.0f, 0.5f, 0.0f)), true);   // 'white' dragon (bc of specular reflection i think)
+        //Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(0.5f), new Vector3f(1.0f, 0.5f, 0.0f)), true);   // grey-ish dragon
+        //Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(1.0f, 51/255f, 51/255f), new Vector3f(1.0f, 204/255f, 204/255f)), true); // red dragon
+        Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(), true);
 
         // calc local transform matrix for square
         Matrix4f dragon_local_transform = new Matrix4f();
@@ -219,7 +230,7 @@ class OpenGLApp {
         Entity dragon = new DrawableEntity(null, dragon_local_transform, new Vector3f(0.25f), dragonShape);
 
         // add entities to components list
-        List<Entity> components = Arrays.asList(cube1_entity, cube2_entity, floor, dragon);
+        List<Entity> components = Arrays.asList(cube1_entity, floor, dragon);
 
         // --- CREATE SCENE ---
         scene = new Scene(components, dirLight, flashLight, pointLightsList, ambientIntensity);
@@ -357,7 +368,6 @@ class OpenGLApp {
         // de-allocate all resources
         scene.deallocateMeshResources();
         phongTextureShaderProgram.delete();
-        phongColourShaderProgram.delete();
         lightShaderProgram.delete();
 
         // clean/delete all other GLFW's resources
