@@ -7,6 +7,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class SkyboxRenderer extends Renderer {
@@ -27,6 +28,7 @@ public class SkyboxRenderer extends Renderer {
         glDepthFunc(GL_LEQUAL); // depth test passes when values are <= depth buffer's content
 
         shaderProgram.use();
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.getCubeMapTexture().getHandle());
 
         glBindVertexArray(skybox.getMesh().getVAOHandle());
         // bind vertex data to shader

@@ -21,7 +21,7 @@ public class PointLightRenderer extends Renderer {
 
         // bind mesh data
         cube = new Cube();
-        glBindVertexArray(cube.getMesh().getVAOHandle()); //todo
+        glBindVertexArray(cube.getMesh().getVAOHandle());
         shaderProgram.bindDataToShader(0, cube.getMesh().getVertexVBOHandle(), 3);
     }
 

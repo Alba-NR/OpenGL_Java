@@ -48,7 +48,7 @@ public class Texture {
          *      - format and datatype of the source image
          *      - actual image data
          */
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, (isRGBA ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, imgData.getByteBuffer());
+        glTexImage2D(GL_TEXTURE_2D, 0, (isRGBA ? GL_RGBA : GL_RGB), width, height, 0, (isRGBA ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, imgData.getByteBuffer());
         glGenerateMipmap(GL_TEXTURE_2D);    // generate mipmap
 
         // set the texture wrapping & filtering parameters

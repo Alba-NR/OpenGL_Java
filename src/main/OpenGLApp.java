@@ -33,7 +33,7 @@ import static org.lwjgl.opengl.GL30.*;
 
 class OpenGLApp {
 
-    private ShaderProgram phongTextureShaderProgram;    // phong shader program using diff & spec textures or colours
+    private ShaderProgram phongShaderProgram;    // phong shader program using diff & spec textures or colours
     private ShaderProgram lightShaderProgram;           // shader prog to use for light cubes
     private ShaderProgram skyboxShaderProgram;          // shader prog to use for skybox
     private Scene scene;                                // scene to render
@@ -78,9 +78,10 @@ class OpenGLApp {
         // create phong vertex shader
         Shader phong_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_vs.glsl");
         // create phong fragment shader
-        Shader phong_texture_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_fs.glsl");
+        //Shader phong_texture_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_fs.glsl");
+        Shader phong_texture_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_withSkyboxReflection_fs.glsl");
         // create phong shader program
-        phongTextureShaderProgram = new ShaderProgram(phong_vs, phong_texture_fs);
+        phongShaderProgram = new ShaderProgram(phong_vs, phong_texture_fs);
 
         // create light cube vertex shader
         Shader light_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/lightSource_vs.glsl");
@@ -102,17 +103,17 @@ class OpenGLApp {
      */
     private void setUpScene() {
         // --- set-up skybox ---
+        String filepath = "./resources/textures/sky_skybox/";
         String[] facesFileNames = new String[]{
-                "./resources/textures/skybox/right.jpg",
-                "./resources/textures/skybox/left.jpg",
-                "./resources/textures/skybox/top.jpg",
-                "./resources/textures/skybox/bottom.jpg",
-                "./resources/textures/skybox/front.jpg",
-                "./resources/textures/skybox/back.jpg"
+                filepath + "right.jpg",
+                filepath +  "left.jpg",
+                filepath +  "top.jpg",
+                filepath +  "bottom.jpg",
+                filepath +  "front.jpg",
+                filepath +  "back.jpg"
         };
         CubeMapTexture cubeMapTexture = new CubeMapTexture(facesFileNames);
         CubeMapCube skybox = new CubeMapCube(cubeMapTexture);
-
 
         // --- set-up lights ---
 
@@ -243,7 +244,7 @@ class OpenGLApp {
         Entity dragon = new DrawableEntity(null, dragon_local_transform, new Vector3f(0.25f), dragonShape);
 
         // add entities to components list
-        List<Entity> components = Arrays.asList(cube1_entity, dragon, floor);
+        List<Entity> components = Arrays.asList(cube1_entity, dragon);
 
         // --- CREATE SCENE ---
         //scene = new Scene(components, dirLight, flashLight, pointLightsList, ambientIntensity);
@@ -257,7 +258,7 @@ class OpenGLApp {
     void renderLoop(){
 
         // --- create renderers ---
-        Renderer entityRenderer = new EntityRenderer(phongTextureShaderProgram);
+        Renderer entityRenderer = new EntityWithSkyboxReflectionRenderer(phongShaderProgram);//EntityPhongRenderer(phongShaderProgram);
         Renderer lightSourceRenderer = new PointLightRenderer(lightShaderProgram);
         Renderer skyboxRenderer = new SkyboxRenderer(skyboxShaderProgram);
 
@@ -269,7 +270,6 @@ class OpenGLApp {
         // --- prepare renderers ---
         entityRenderer.prepare(scene);
         lightSourceRenderer.prepare(scene);
-        //skyboxRenderer.prepare(scene); // todo
 
         // --- (per frame info...) ---
         float deltaTime;	        // Time between current frame and last frame
@@ -300,7 +300,7 @@ class OpenGLApp {
             RenderContext.setContext(view, projection, camera.getCameraPos(), camera.getCameraFront());
 
             entityRenderer.render(scene);
-            lightSourceRenderer.render(scene);
+            //lightSourceRenderer.render(scene); todo
             skyboxRenderer.render(scene);
 
 
@@ -386,7 +386,7 @@ class OpenGLApp {
 
         // de-allocate all resources
         scene.deallocateMeshResources();
-        phongTextureShaderProgram.delete();
+        phongShaderProgram.delete();
         lightShaderProgram.delete();
         skyboxShaderProgram.delete();
 

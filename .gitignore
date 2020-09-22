@@ -6,4 +6,4 @@
 *.iws
 *.ipr
 .idea/
-.out/
+out/

@@ -6,9 +6,12 @@ import graphics.scene.Entity;
 import graphics.scene.Scene;
 import graphics.shaders.ShaderProgram;
 
-public class EntityRenderer extends Renderer{
+import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP;
 
-    public EntityRenderer(ShaderProgram phongShaderToUse) {
+public class EntityPhongRenderer extends Renderer{
+
+    public EntityPhongRenderer(ShaderProgram phongShaderToUse) {
         super(phongShaderToUse);
     }
 
@@ -35,6 +38,9 @@ public class EntityRenderer extends Renderer{
 
         // update flashlight info in shader
         updateFlashlightInShader(scene.getFlashLight());
+
+        // if scene uses skybox, bind skybox texture
+        if(scene.getSkybox() != null) glBindTexture(GL_TEXTURE_CUBE_MAP, scene.getSkybox().getCubeMapTexture().getHandle());
 
         // render components
         for(Entity component : scene.getComponents()) component.render(shaderProgram);
