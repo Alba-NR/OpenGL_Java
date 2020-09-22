@@ -2,14 +2,14 @@ package graphics.shapes.meshes;
 
 import static org.lwjgl.opengl.GL30.*;
 
-class MeshFromOBJ extends Mesh {
+public class MeshFromOBJ extends Mesh {
     private float[] vPositions;
     private int[] vIndeces;
     private float[] vNormals;
     private float[] texCoords;
 
-    MeshFromOBJ(float[] vPositions, int[] vIndeces, float[] vNormals, float[] texCoords, boolean useFaceCUlling){
-        super(GL_CCW, useFaceCUlling);
+    public MeshFromOBJ(float[] vPositions, int[] vIndeces, float[] vNormals, float[] texCoords, boolean useFaceCulling){
+        super(GL_CCW, useFaceCulling);
         this.vPositions = vPositions;
         this.vIndeces = vIndeces;
         this.vNormals = vNormals;

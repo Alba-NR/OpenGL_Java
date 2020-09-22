@@ -22,7 +22,7 @@ public class DrawableEntity extends Entity {
 
     @Override
     public void render(ShaderProgram shaderProgram) {
-        glBindVertexArray(shape.getMesh().getVAOHandle()); //todo
+        glBindVertexArray(shape.getMesh().getVAOHandle());
 
         // bind data to shader
         shaderProgram.bindDataToShader(0, shape.getMesh().getVertexVBOHandle(), 3);

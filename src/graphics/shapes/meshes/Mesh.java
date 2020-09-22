@@ -13,8 +13,8 @@ public abstract class Mesh {
     // shape/rendering properties
     private int vaoHandle;
     private int vertexVBOHandle;
-    private int normalHandle;
-    private int texHandle;
+    private int normalHandle = -1;
+    private int texHandle = -1;
     private int num_of_triangles;
     private int eboHandle;
     private int GLFrontFaceWinding;
@@ -53,30 +53,32 @@ public abstract class Mesh {
      * @param textureCoordinates array specifying tex coordinates
      */
     private void loadDataOntoGPU(float[] vertPositions, int[] indices, float[] vertNormals, float[] textureCoordinates) {
+        vaoHandle = glGenVertexArrays();    // create VAO obj
+        glBindVertexArray(vaoHandle);       // bind vertex array (VAO)
 
         // --- load vertex positions ---
-        vaoHandle = glGenVertexArrays(); // create VAO obj
-        glBindVertexArray(vaoHandle); // bind vertex array (VAO)
-
         vertexVBOHandle = glGenBuffers();                   // create an int buffer & return int ID (create VBO- vertex buffer obj)
         glBindBuffer(GL_ARRAY_BUFFER, vertexVBOHandle);     // bind buffer (VBO)
         glBufferData(GL_ARRAY_BUFFER, vertPositions, GL_STATIC_DRAW); // copy vertex data into currently bound buffer
 
-        // --- load vertex normals ---
-        normalHandle = glGenBuffers(); // Get an OGL name for a buffer object
-        glBindBuffer(GL_ARRAY_BUFFER, normalHandle); // Bring that buffer object into existence on GPU
-        glBufferData(GL_ARRAY_BUFFER, vertNormals, GL_STATIC_DRAW); // Load the GPU buffer object with data
-
         // --- load vertex indexes ---
-
         eboHandle = glGenBuffers();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboHandle);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
+        // --- load vertex normals ---
+        if (vertNormals != null) {
+            normalHandle = glGenBuffers(); // Get an OGL name for a buffer object
+            glBindBuffer(GL_ARRAY_BUFFER, normalHandle); // Bring that buffer object into existence on GPU
+            glBufferData(GL_ARRAY_BUFFER, vertNormals, GL_STATIC_DRAW); // Load the GPU buffer object with data
+        }
+
         // --- load texture coordinates ---
-        texHandle = glGenBuffers();
-        glBindBuffer(GL_ARRAY_BUFFER, texHandle);
-        glBufferData(GL_ARRAY_BUFFER, textureCoordinates, GL_STATIC_DRAW);
+        if (textureCoordinates != null) {
+            texHandle = glGenBuffers();
+            glBindBuffer(GL_ARRAY_BUFFER, texHandle);
+            glBufferData(GL_ARRAY_BUFFER, textureCoordinates, GL_STATIC_DRAW);
+        }
     }
 
     /**
@@ -96,10 +98,10 @@ public abstract class Mesh {
 
     public void deallocateResources(){
         glDeleteVertexArrays(vaoHandle);
-        glDeleteVertexArrays(normalHandle);
-        glDeleteVertexArrays(texHandle);
         glDeleteBuffers(vertexVBOHandle);
         glDeleteBuffers(eboHandle);
+        if (normalHandle != -1) glDeleteVertexArrays(normalHandle);
+        if (texHandle != -1) glDeleteVertexArrays(texHandle);
     }
 
     public int getVAOHandle(){

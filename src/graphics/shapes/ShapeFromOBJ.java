@@ -1,7 +1,7 @@
 package graphics.shapes;
 
 import graphics.materials.Material;
-import graphics.shapes.meshes.ModelLoader;
+import graphics.core.io.ModelLoader;
 
 public class ShapeFromOBJ extends Shape {
     public ShapeFromOBJ(String fileName, Material material, boolean useFaceCulling) {

@@ -1,5 +1,7 @@
-package graphics.shapes.meshes;
+package graphics.core.io;
 
+import graphics.shapes.meshes.Mesh;
+import graphics.shapes.meshes.MeshFromOBJ;
 import org.lwjgl.assimp.*;
 
 import java.nio.IntBuffer;
@@ -8,18 +10,25 @@ import java.util.Map;
 
 public class ModelLoader {
 
+    // map of filenames to meshes created from .obj files ( to ensure only 1 mesh is created per .obj file)
     private static Map<String, MeshFromOBJ> mapFilenameToInstance = new HashMap<>();
 
-    public static Mesh loadModel(String filePath, boolean useFaceCulling){
-        MeshFromOBJ returnValue = mapFilenameToInstance.getOrDefault(filePath, null);
+    /**
+     * Creates a Mesh object for the model in the given .OBJ file
+     * @param filename {@link String} filename/filepath of the .OBJ file to load
+     * @param useFaceCulling true if face culling is to be used when rendering the created Mesh
+     * @return {@link Mesh} for the model from the .OBJ file.
+     */
+    public static Mesh loadModel(String filename, boolean useFaceCulling){
+        MeshFromOBJ returnValue = mapFilenameToInstance.getOrDefault(filename, null);
 
         if( returnValue == null) {
             // create assimp scene obj
-            AIScene scene = Assimp.aiImportFile(filePath,
+            AIScene scene = Assimp.aiImportFile(filename,
                     Assimp.aiProcess_Triangulate |
                             Assimp.aiProcess_JoinIdenticalVertices
             );
-            if (scene == null) System.err.println("Couldn't load model at" + filePath); // todo: raise exception instead
+            if (scene == null) System.err.println("Couldn't load model at" + filename); // todo: raise exception instead
 
             // get 1st mesh
             AIMesh mesh = AIMesh.create(scene.mMeshes().get(0)); // get 1st mesh
@@ -73,7 +82,7 @@ public class ModelLoader {
             returnValue = new MeshFromOBJ(vPositions, vIndeces, vNormals, texCoords, useFaceCulling);
 
             // place into map
-            mapFilenameToInstance.put(filePath, returnValue);
+            mapFilenameToInstance.put(filename, returnValue);
         }
 
         return returnValue;

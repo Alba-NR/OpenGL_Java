@@ -7,19 +7,14 @@ import graphics.lights.DirLight;
 import graphics.lights.FlashLight;
 import graphics.lights.PointLight;
 import graphics.materials.Material;
-import graphics.renderEngine.EntityRenderer;
-import graphics.renderEngine.PointLightRenderer;
-import graphics.renderEngine.RenderContext;
-import graphics.renderEngine.Renderer;
+import graphics.renderEngine.*;
 import graphics.scene.DrawableEntity;
 import graphics.scene.Entity;
 import graphics.scene.Scene;
-import graphics.shapes.Cube;
+import graphics.shapes.*;
 import graphics.shaders.Shader;
 import graphics.shaders.ShaderProgram;
-import graphics.shapes.Shape;
-import graphics.shapes.ShapeFromOBJ;
-import graphics.shapes.Square;
+import graphics.textures.CubeMapTexture;
 import graphics.textures.Texture;
 import graphics.textures.TextureType;
 import org.joml.Matrix4f;
@@ -40,6 +35,7 @@ class OpenGLApp {
 
     private ShaderProgram phongTextureShaderProgram;    // phong shader program using diff & spec textures or colours
     private ShaderProgram lightShaderProgram;           // shader prog to use for light cubes
+    private ShaderProgram skyboxShaderProgram;          // shader prog to use for skybox
     private Scene scene;                                // scene to render
 
     final private int SCR_WIDTH = WindowManager.getScrWidth();  // screen size settings
@@ -80,24 +76,44 @@ class OpenGLApp {
      */
     private void setUpShaders() {
         // create phong vertex shader
-        Shader phong_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_vertex_shader.glsl");
+        Shader phong_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_vs.glsl");
         // create phong fragment shader
-        Shader phong_texture_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_fragment_shader.glsl");
+        Shader phong_texture_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_fs.glsl");
         // create phong shader program
         phongTextureShaderProgram = new ShaderProgram(phong_vs, phong_texture_fs);
 
         // create light cube vertex shader
-        Shader lightVertexShader = new Shader(GL_VERTEX_SHADER, "./resources/shaders/lightSource_vertex_shader.glsl");
+        Shader light_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/lightSource_vs.glsl");
         // create light cube fragment shader
-        Shader lightFragmentShader = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/lightSource_fragment_shader.glsl");
+        Shader light_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/lightSource_fs.glsl");
         // create light cube shader program
-        lightShaderProgram = new ShaderProgram(lightVertexShader, lightFragmentShader);
+        lightShaderProgram = new ShaderProgram(light_vs, light_fs);
+
+        // create light cube vertex shader
+        Shader skybox_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/skybox_vs.glsl");
+        // create light cube fragment shader
+        Shader skybox_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/skybox_fs.glsl");
+        // create light cube shader program
+        skyboxShaderProgram = new ShaderProgram(skybox_vs, skybox_fs);
     }
 
     /**
      * Set-up the scene to render here.
      */
     private void setUpScene() {
+        // --- set-up skybox ---
+        String[] facesFileNames = new String[]{
+                "./resources/textures/skybox/right.jpg",
+                "./resources/textures/skybox/left.jpg",
+                "./resources/textures/skybox/top.jpg",
+                "./resources/textures/skybox/bottom.jpg",
+                "./resources/textures/skybox/front.jpg",
+                "./resources/textures/skybox/back.jpg"
+        };
+        CubeMapTexture cubeMapTexture = new CubeMapTexture(facesFileNames);
+        CubeMapCube skybox = new CubeMapCube(cubeMapTexture);
+
+
         // --- set-up lights ---
 
         // directional light
@@ -199,7 +215,7 @@ class OpenGLApp {
         cube1_entity.addChild(cube3_entity);
 
         // FLOOR PLANE
-        Shape square = new Square(new Material(0.2f, 0.8f, 0.01f, 4f, new Vector3f((float) 50/255), new Vector3f(1f)));
+        Shape square = new Square(new Material(0.2f, 0.8f, 0.01f, 4f, new Vector3f(51/255f, 56/255f, 62/255f), new Vector3f(1f)));
 
         // calc local transform matrix for square
         Matrix4f floor_local_transform = new Matrix4f();
@@ -207,7 +223,7 @@ class OpenGLApp {
                 .rotate((float) Math.toRadians(90), 1.0f, 0.0f, 0.0f);
 
         // create floor entity
-        Entity floor = new DrawableEntity(null, floor_local_transform, new Vector3f(30), square);
+        Entity floor = new DrawableEntity(null, floor_local_transform, new Vector3f(50), square);
 
         // DRAGON
         /*
@@ -215,25 +231,24 @@ class OpenGLApp {
                 new Texture("./resources/textures/circuitry-albedo.png", false, TextureType.DIFFUSE)
         );
         Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(dragon_texList), false);
-         */
-        //Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(1.0f), new Vector3f(1.0f, 0.5f, 0.0f)), true);   // 'white' dragon (bc of specular reflection i think)
-        //Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(0.5f), new Vector3f(1.0f, 0.5f, 0.0f)), true);   // grey-ish dragon
-        //Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(1.0f, 51/255f, 51/255f), new Vector3f(1.0f, 204/255f, 204/255f)), true); // red dragon
-        Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(), true);
+        */
+        Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(1.0f, 51/255f, 51/255f), new Vector3f(1.0f, 204/255f, 204/255f)), true); // red dragon
 
-        // calc local transform matrix for square
+        // calc local transform matrix for dragon
         Matrix4f dragon_local_transform = new Matrix4f();
         dragon_local_transform.translate(2f, -1.0f, 2f)
                 .rotateAffine((float) -Math.toRadians(135), 0f, 1f, 0f);
 
-        // create floor entity
+        // create dragon entity
         Entity dragon = new DrawableEntity(null, dragon_local_transform, new Vector3f(0.25f), dragonShape);
 
         // add entities to components list
-        List<Entity> components = Arrays.asList(cube1_entity, floor, dragon);
+        List<Entity> components = Arrays.asList(cube1_entity, dragon, floor);
 
         // --- CREATE SCENE ---
-        scene = new Scene(components, dirLight, flashLight, pointLightsList, ambientIntensity);
+        //scene = new Scene(components, dirLight, flashLight, pointLightsList, ambientIntensity);
+        scene = new Scene(components, dirLight, flashLight, pointLightsList, ambientIntensity, skybox);
+
     }
 
     /**
@@ -244,6 +259,7 @@ class OpenGLApp {
         // --- create renderers ---
         Renderer entityRenderer = new EntityRenderer(phongTextureShaderProgram);
         Renderer lightSourceRenderer = new PointLightRenderer(lightShaderProgram);
+        Renderer skyboxRenderer = new SkyboxRenderer(skyboxShaderProgram);
 
         // --------- SET UP SCENE ---------
         setUpScene();
@@ -253,6 +269,7 @@ class OpenGLApp {
         // --- prepare renderers ---
         entityRenderer.prepare(scene);
         lightSourceRenderer.prepare(scene);
+        //skyboxRenderer.prepare(scene); // todo
 
         // --- (per frame info...) ---
         float deltaTime;	        // Time between current frame and last frame
@@ -284,6 +301,8 @@ class OpenGLApp {
 
             entityRenderer.render(scene);
             lightSourceRenderer.render(scene);
+            skyboxRenderer.render(scene);
+
 
             // --- check events & swap buffers ---
             WindowManager.updateWindow();
@@ -369,6 +388,7 @@ class OpenGLApp {
         scene.deallocateMeshResources();
         phongTextureShaderProgram.delete();
         lightShaderProgram.delete();
+        skyboxShaderProgram.delete();
 
         // clean/delete all other GLFW's resources
         glfwTerminate();
