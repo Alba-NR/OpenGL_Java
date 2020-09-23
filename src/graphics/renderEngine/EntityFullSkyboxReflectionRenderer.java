@@ -1,7 +1,5 @@
 package graphics.renderEngine;
 
-import graphics.lights.FlashLight;
-import graphics.lights.PointLight;
 import graphics.scene.Entity;
 import graphics.scene.Scene;
 import graphics.shaders.ShaderProgram;
@@ -9,9 +7,9 @@ import graphics.shaders.ShaderProgram;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP;
 
-public class EntityWithSkyboxReflectionRenderer extends Renderer{
+public class EntityFullSkyboxReflectionRenderer extends Renderer{
 
-    public EntityWithSkyboxReflectionRenderer(ShaderProgram phongShaderToUse) {
+    public EntityFullSkyboxReflectionRenderer(ShaderProgram phongShaderToUse) {
         super(phongShaderToUse);
     }
 

@@ -17,7 +17,7 @@ public class Material {
     private Vector3f diffColour, specColour;
     private float K_a, K_diff, K_spec;
     private float shininess;
-    private List<Texture> texturesList = null;
+    private List<Texture> texturesList;
 
     public Material(){
         diffColour = new Vector3f(0.973f, 0.639f, 0.475f);  // coral orange colour
@@ -94,6 +94,7 @@ public class Material {
      * Currently: upload to attrib of 'material' Material uniform.
      *      DIFFUSE textures to material.diffuse_texN
      *      SPECULAR textures to material.specular_texN
+     *      REFLECTION texture to material.reflection_tex
      * Note: texturesList must not be null
      * @param shader {@link ShaderProgram} to which to upload textures.
      */
@@ -114,6 +115,9 @@ public class Material {
                 case SPECULAR:
                     num = specNum++;
                     typeString = "specular_tex";
+                    break;
+                case REFLECTION:
+                    typeString = "reflection_tex";
                     break;
             }
             shader.uploadInt("material." + typeString + num, i);     // upload texture

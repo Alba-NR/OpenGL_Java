@@ -35,6 +35,7 @@ public class EntityPhongRenderer extends Renderer{
     @Override
     public void render(Scene scene) {
         shaderProgram.use();
+        shaderProgram.uploadVec3f("wc_cameraPos", RenderContext.getCameraPos());
 
         // update flashlight info in shader
         updateFlashlightInShader(scene.getFlashLight());

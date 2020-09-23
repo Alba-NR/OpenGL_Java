@@ -78,10 +78,9 @@ class OpenGLApp {
         // create phong vertex shader
         Shader phong_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_vs.glsl");
         // create phong fragment shader
-        //Shader phong_texture_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_fs.glsl");
-        Shader phong_texture_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_withSkyboxReflection_fs.glsl");
+        Shader phong_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_withReflectionMaps_fs.glsl");
         // create phong shader program
-        phongShaderProgram = new ShaderProgram(phong_vs, phong_texture_fs);
+        phongShaderProgram = new ShaderProgram(phong_vs, phong_fs);
 
         // create light cube vertex shader
         Shader light_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/lightSource_vs.glsl");
@@ -103,7 +102,7 @@ class OpenGLApp {
      */
     private void setUpScene() {
         // --- set-up skybox ---
-        String filepath = "./resources/textures/sky_skybox/";
+        String filepath = "./resources/textures/yokohama_skybox/";
         String[] facesFileNames = new String[]{
                 filepath + "right.jpg",
                 filepath +  "left.jpg",
@@ -185,7 +184,8 @@ class OpenGLApp {
         // WOODEN CUBES
         List<Texture> woodenCube_texList = Arrays.asList(
                 new Texture("./resources/textures/container2.png", false, TextureType.DIFFUSE),
-                new Texture("./resources/textures/container2_specular.png", false, TextureType.SPECULAR)
+                new Texture("./resources/textures/container2_specular.png", false, TextureType.SPECULAR),
+                new Texture("./resources/textures/container2_reflection2.png", false, TextureType.REFLECTION)
         );
         Shape cube = new Cube(new Material(woodenCube_texList));
 
@@ -258,7 +258,7 @@ class OpenGLApp {
     void renderLoop(){
 
         // --- create renderers ---
-        Renderer entityRenderer = new EntityWithSkyboxReflectionRenderer(phongShaderProgram);//EntityPhongRenderer(phongShaderProgram);
+        Renderer entityRenderer = new EntityPhongRenderer(phongShaderProgram);//EntityPhongRenderer(phongShaderProgram);
         Renderer lightSourceRenderer = new PointLightRenderer(lightShaderProgram);
         Renderer skyboxRenderer = new SkyboxRenderer(skyboxShaderProgram);
 
@@ -300,7 +300,7 @@ class OpenGLApp {
             RenderContext.setContext(view, projection, camera.getCameraPos(), camera.getCameraFront());
 
             entityRenderer.render(scene);
-            //lightSourceRenderer.render(scene); todo
+            lightSourceRenderer.render(scene);
             skyboxRenderer.render(scene);
 
 
