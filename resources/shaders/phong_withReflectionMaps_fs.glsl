@@ -9,6 +9,7 @@ struct Material {
     float K_a;          // ambient reflection coefficient
     float K_diff;       // diff reflection coeff
     float K_spec;       // spec reflection coeff
+    float K_refl;       // reflectivity coeff (for reflection of skybox, when using plain colours for material not when using maps)
     float shininess;    // shininness coeff (for specular reflection)
 };
 
@@ -58,6 +59,7 @@ uniform bool materialUsesTextures;
 uniform vec3 wc_cameraPos;
 uniform bool flashLightIsON;
 uniform samplerCube skybox;
+uniform bool isReflectiveMaterial;
 
 // function prototypes
 vec3 CalcDirLight(DirLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColour);
@@ -73,17 +75,19 @@ void main()
     vec3 V = normalize(wc_cameraPos - wc_fragPos);
 
     // get diffuse & specular colours...
-    vec3 diffColour, specColour, reflectedColour;
+    vec3 diffColour, specColour;
+    vec3 reflectedColour = vec3(0.0);
+    vec3 minusVreflectedOnN;
+    if(isReflectiveMaterial) minusVreflectedOnN = reflect(-V, N);
     if(materialUsesTextures){
         // ...from textures (the maps...)
         diffColour = vec3(texture(material.diffuse_tex1, TexCoord));
         specColour = vec3(texture(material.specular_tex1, TexCoord));
-        vec3 minusVreflectedOnN = reflect(-V, N);
-        reflectedColour = vec3(texture(material.reflection_tex0, TexCoord)) * texture(skybox, minusVreflectedOnN).rgb;
+        if(isReflectiveMaterial) reflectedColour = vec3(texture(material.reflection_tex0, TexCoord)) * texture(skybox, minusVreflectedOnN).rgb;
     } else {
         diffColour = material.diffuseColour;
         specColour = material.specularColour;
-        reflectedColour = vec3(0.0, 0.0, 0.0);
+        if(isReflectiveMaterial) reflectedColour = material.K_refl * texture(skybox, minusVreflectedOnN).rgb;
     }
 
     // Directional lighting
@@ -98,7 +102,7 @@ void main()
     // ambient light
     I_result += I_a * diffColour * material.K_a;
 
-    // colour reflected from cubemap
+    // colour reflected from skybox
     I_result += reflectedColour;
 
     FragColor = vec4(I_result, 1.0);

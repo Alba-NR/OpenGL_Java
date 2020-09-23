@@ -7,6 +7,7 @@ import graphics.lights.DirLight;
 import graphics.lights.FlashLight;
 import graphics.lights.PointLight;
 import graphics.materials.Material;
+import graphics.materials.ReflectiveMaterial;
 import graphics.renderEngine.*;
 import graphics.scene.DrawableEntity;
 import graphics.scene.Entity;
@@ -187,7 +188,8 @@ class OpenGLApp {
                 new Texture("./resources/textures/container2_specular.png", false, TextureType.SPECULAR),
                 new Texture("./resources/textures/container2_reflection2.png", false, TextureType.REFLECTION)
         );
-        Shape cube = new Cube(new Material(woodenCube_texList));
+        //Shape cube = new Cube(new Material(woodenCube_texList));
+        Shape cube = new Cube(new ReflectiveMaterial(woodenCube_texList));
 
         // calc local transform matrix for cube 1
         Matrix4f cube1_local_transform = new Matrix4f();
@@ -216,7 +218,7 @@ class OpenGLApp {
         cube1_entity.addChild(cube3_entity);
 
         // FLOOR PLANE
-        Shape square = new Square(new Material(0.2f, 0.8f, 0.01f, 4f, new Vector3f(51/255f, 56/255f, 62/255f), new Vector3f(1f)));
+        Shape square = new Square(new ReflectiveMaterial(0.2f, 0.8f, 0.01f, 4f, new Vector3f(51/255f, 56/255f, 62/255f), new Vector3f(1f)));
 
         // calc local transform matrix for square
         Matrix4f floor_local_transform = new Matrix4f();
@@ -244,7 +246,7 @@ class OpenGLApp {
         Entity dragon = new DrawableEntity(null, dragon_local_transform, new Vector3f(0.25f), dragonShape);
 
         // add entities to components list
-        List<Entity> components = Arrays.asList(cube1_entity, dragon);
+        List<Entity> components = Arrays.asList(cube1_entity, dragon, floor);
 
         // --- CREATE SCENE ---
         //scene = new Scene(components, dirLight, flashLight, pointLightsList, ambientIntensity);

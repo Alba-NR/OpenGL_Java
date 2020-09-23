@@ -87,6 +87,8 @@ public class Material {
             shader.uploadInt("materialUsesTextures", 1);
             uploadTexturesToShader(shader);
         }
+
+        shader.uploadInt("isReflectiveMaterial", 0);    // not a reflective material
     }
 
     /**
@@ -115,9 +117,6 @@ public class Material {
                 case SPECULAR:
                     num = specNum++;
                     typeString = "specular_tex";
-                    break;
-                case REFLECTION:
-                    typeString = "reflection_tex";
                     break;
             }
             shader.uploadInt("material." + typeString + num, i);     // upload texture
@@ -155,7 +154,7 @@ public class Material {
         return shininess;
     }
     public List<Texture> getTexturesList() {
-        return List.copyOf(texturesList);
+        return texturesList == null ? null : List.copyOf(texturesList);
     }
 
     public void setDiffColour(Vector3f diffColour) {
