@@ -24,6 +24,7 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -80,7 +81,7 @@ class OpenGLApp {
         // create phong vertex shader
         Shader phong_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_vs.glsl");
         // create phong fragment shader
-        Shader phong_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_wReflectionAndRefraction_fs.glsl");
+        Shader phong_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/blinnPhong_wReflectionAndRefraction_fs.glsl");
         // create phong shader program
         phongShaderProgram = new ShaderProgram(phong_vs, phong_fs);
 
@@ -106,7 +107,7 @@ class OpenGLApp {
         // --- SET UP SKYBOX ---
         String filepath = "./resources/textures/yokohama_skybox/";
         String[] facesFileNames = new String[]{
-                filepath + "right.jpg",
+                filepath +  "right.jpg",
                 filepath +  "left.jpg",
                 filepath +  "top.jpg",
                 filepath +  "bottom.jpg",
@@ -189,8 +190,9 @@ class OpenGLApp {
                 new Texture("./resources/textures/container2_specular.png", false, TextureType.SPECULAR),
                 new Texture("./resources/textures/container2_reflection2.png", false, TextureType.REFLECTION)
         );
-        //Shape cube = new Cube(new Material(woodenCube_texList));
-        Shape cube = new Cube(new ReflectiveMaterial(woodenCube_texList));
+        Material cubeMaterial = new ReflectiveMaterial(woodenCube_texList);
+        cubeMaterial.setK_spec(0.5f);
+        Shape cube = new Cube(cubeMaterial);
 
         // calc local transform matrix for cube 1
         Matrix4f cube1_local_transform = new Matrix4f();
@@ -254,18 +256,14 @@ class OpenGLApp {
         // GRASS
         Texture grassTex = new Texture("./resources/textures/grass.png", true, TextureType.DIFFUSE);
         grassTex.setTexWrapToClampToEdge();
-        Material grassMaterial = new Material(Arrays.asList(grassTex));
+        Material grassMaterial = new Material(Collections.singletonList(grassTex));
         Shape grassShape = new Square(grassMaterial);
-        List<Vector3f> grassPositions = Arrays.asList(
-                new Vector3f(-1.5f,-0.5f,-0.48f),
-                new Vector3f(1.5f,-0.5f,0.51f),
-                new Vector3f(0.0f,-0.5f, 0.7f)
-        );
-        List<Entity> grassEntities = new ArrayList<>();
-        for(Vector3f pos : grassPositions){
-            Matrix4f grass_local_transform = new Matrix4f();
-            grass_local_transform.translate(pos);
 
+        List<Entity> grassEntities = new ArrayList<>();
+        for(int i = 0; i < 3; i++){
+            Matrix4f grass_local_transform = new Matrix4f();
+            grass_local_transform.translate(5.0f, -0.5f, -5.0f)
+                                    .rotate((float) Math.toRadians(45) * i, 0, 1, 0);
             grassEntities.add(new DrawableEntity(null, grass_local_transform, new Vector3f(1), grassShape));
         }
 
@@ -275,7 +273,6 @@ class OpenGLApp {
         components.addAll(grassEntities);
 
         // --- CREATE SCENE ---
-        //scene = new Scene(components, dirLight, flashLight, pointLightsList, ambientIntensity);
         scene = new Scene(components, dirLight, flashLight, pointLightsList, ambientIntensity, skybox);
 
     }

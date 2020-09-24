@@ -137,11 +137,11 @@ vec3 CalcDirLight(DirLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 specC
 {
     // calc vectors
     vec3 L = normalize(-light.direction);
-    vec3 R = reflect(-L, N);
+    vec3 H = normalize(N + V); // halfway vector (half way btwn V & N)
 
     // diffuse & specular shading
     vec3 I_diffuse = light.colour * diffComponent * max(dot(N, L), 0.0);
-    vec3 I_specular = light.colour * specComponent * pow(max(dot(V, R), 0.0), material.shininess);
+    vec3 I_specular = light.colour * specComponent * pow(max(dot(N, H), 0.0), material.shininess);
 
     return (I_diffuse + I_specular) * light.strength;
 }
@@ -150,7 +150,7 @@ vec3 CalcPointLight(PointLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 s
 {
     //calc vectors
     vec3 L = normalize(light.position - wc_fragPos);
-    vec3 R = reflect(-L, N);
+    vec3 H = normalize(N + V);
 
     // attenuation
     float distance = length(light.position - wc_fragPos);
@@ -158,7 +158,7 @@ vec3 CalcPointLight(PointLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 s
 
     // diffuse & specular shading
     vec3 I_diffuse = light.colour * diffComponent * max(dot(N, L), 0.0);
-    vec3 I_specular = light.colour * specComponent * pow(max(dot(V, R), 0.0), material.shininess);
+    vec3 I_specular = light.colour * specComponent * pow(max(dot(N, H), 0.0), material.shininess);
 
     I_diffuse *= attenuation;
     I_specular *= attenuation;
@@ -170,7 +170,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 spe
 {
     //calc vectors
     vec3 L = normalize(light.position - wc_fragPos);
-    vec3 R = reflect(-L, N);
+    vec3 H = normalize(N + V);
 
     // attenuation
     float distance = length(light.position - wc_fragPos);
@@ -182,7 +182,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 spe
 
     // diffuse & specular shading
     vec3 I_diffuse = light.colour * diffComponent * max(dot(N, L), 0.0);
-    vec3 I_specular = light.colour * specComponent * pow(max(dot(V, R), 0.0), material.shininess);
+    vec3 I_specular = light.colour * specComponent * pow(max(dot(N, H), 0.0), material.shininess);
 
     I_diffuse *= attenuation * I;
     I_specular *= attenuation * I;
