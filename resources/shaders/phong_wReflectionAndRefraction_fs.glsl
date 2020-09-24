@@ -96,7 +96,9 @@ void main()
 
     if(materialUsesTextures){
         // ...from textures (the maps...)
-        diffColour = vec3(texture(material.diffuse_tex1, TexCoord));
+        vec4 diffSampleFromTex = texture(material.diffuse_tex1, TexCoord);
+        if(diffSampleFromTex.a < 0.1) discard;
+        diffColour = vec3(diffSampleFromTex);
         specColour = vec3(texture(material.specular_tex1, TexCoord));
         if(isReflectiveMaterial) reflectedColour = vec3(texture(material.reflection_tex0, TexCoord)) * texture(skybox, minusVreflectedOnN).rgb;
         if(isRefractiveMaterial) refractedColour = vec3(texture(material.refraction_tex0, TexCoord)) * texture(skybox, refractedVector).rgb;

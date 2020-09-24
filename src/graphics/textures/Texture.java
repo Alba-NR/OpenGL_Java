@@ -60,6 +60,26 @@ public class Texture {
         glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
     }
 
+    /**
+     * Set the wrapping method to GL_REPEAT
+     */
+    public void setTexWrapToRepeat(){
+        glBindTexture(GL_TEXTURE_2D, id);  // bind texture
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
+    }
+
+    /**
+     * Set the wrapping method to GL_CLAMP_TO_EDGE
+     */
+    public void setTexWrapToClampToEdge(){
+        glBindTexture(GL_TEXTURE_2D, id);  // bind texture
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
+    }
+
     public int getHandle(){
         return id;
     }

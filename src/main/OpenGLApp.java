@@ -103,7 +103,7 @@ class OpenGLApp {
      * Set-up the scene to render here.
      */
     private void setUpScene() {
-        // --- set-up skybox ---
+        // --- SET UP SKYBOX ---
         String filepath = "./resources/textures/yokohama_skybox/";
         String[] facesFileNames = new String[]{
                 filepath + "right.jpg",
@@ -116,7 +116,7 @@ class OpenGLApp {
         CubeMapTexture cubeMapTexture = new CubeMapTexture(facesFileNames);
         CubeMapCube skybox = new CubeMapCube(cubeMapTexture);
 
-        // --- set-up lights ---
+        // --- SET UP LIGHTS ---
 
         // directional light
         DirLight dirLight = new DirLight(new Vector3f(1.0f, 1.0f, 1.0f), 2.0f, new Vector3f(-0.2f, -1.0f, -0.3f));
@@ -230,14 +230,6 @@ class OpenGLApp {
         Entity floor = new DrawableEntity(null, floor_local_transform, new Vector3f(50), square);
 
         // DRAGON
-        /*
-        List<Texture> dragon_texList = Arrays.asList(
-                new Texture("./resources/textures/circuitry-albedo.png", false, TextureType.DIFFUSE)
-        );
-        Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(dragon_texList), false);
-        */
-        //Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(1.0f, 51/255f, 51/255f), new Vector3f(1.0f, 204/255f, 204/255f)), true); // red dragon
-
         Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj",
                 new RefractiveMaterial(
                         0.01f,
@@ -259,8 +251,28 @@ class OpenGLApp {
         // create dragon entity
         Entity dragon = new DrawableEntity(null, dragon_local_transform, new Vector3f(0.25f), dragonShape);
 
-        // add entities to components list
-        List<Entity> components = Arrays.asList(cube1_entity, dragon, floor);
+        // GRASS
+        Texture grassTex = new Texture("./resources/textures/grass.png", true, TextureType.DIFFUSE);
+        grassTex.setTexWrapToClampToEdge();
+        Material grassMaterial = new Material(Arrays.asList(grassTex));
+        Shape grassShape = new Square(grassMaterial);
+        List<Vector3f> grassPositions = Arrays.asList(
+                new Vector3f(-1.5f,-0.5f,-0.48f),
+                new Vector3f(1.5f,-0.5f,0.51f),
+                new Vector3f(0.0f,-0.5f, 0.7f)
+        );
+        List<Entity> grassEntities = new ArrayList<>();
+        for(Vector3f pos : grassPositions){
+            Matrix4f grass_local_transform = new Matrix4f();
+            grass_local_transform.translate(pos);
+
+            grassEntities.add(new DrawableEntity(null, grass_local_transform, new Vector3f(1), grassShape));
+        }
+
+        // --- COMPONENTS LIST: add entities to components list
+        List<Entity> components = new ArrayList<>();
+        components.addAll(Arrays.asList(cube1_entity, dragon, floor));
+        components.addAll(grassEntities);
 
         // --- CREATE SCENE ---
         //scene = new Scene(components, dirLight, flashLight, pointLightsList, ambientIntensity);
