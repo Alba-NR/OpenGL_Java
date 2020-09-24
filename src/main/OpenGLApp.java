@@ -8,6 +8,7 @@ import graphics.lights.FlashLight;
 import graphics.lights.PointLight;
 import graphics.materials.Material;
 import graphics.materials.ReflectiveMaterial;
+import graphics.materials.RefractiveMaterial;
 import graphics.renderEngine.*;
 import graphics.scene.DrawableEntity;
 import graphics.scene.Entity;
@@ -79,7 +80,7 @@ class OpenGLApp {
         // create phong vertex shader
         Shader phong_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_vs.glsl");
         // create phong fragment shader
-        Shader phong_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_withReflectionMaps_fs.glsl");
+        Shader phong_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/phong_wReflectionAndRefraction_fs.glsl");
         // create phong shader program
         phongShaderProgram = new ShaderProgram(phong_vs, phong_fs);
 
@@ -235,7 +236,20 @@ class OpenGLApp {
         );
         Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(dragon_texList), false);
         */
-        Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(1.0f, 51/255f, 51/255f), new Vector3f(1.0f, 204/255f, 204/255f)), true); // red dragon
+        //Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj", new Material(new Vector3f(1.0f, 51/255f, 51/255f), new Vector3f(1.0f, 204/255f, 204/255f)), true); // red dragon
+
+        Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj",
+                new RefractiveMaterial(
+                        0.01f,
+                        0.2f,
+                        0.025f,
+                        64f,
+                        new Vector3f(1.0f, 51/255f, 51/255f),
+                        new Vector3f(1.0f),
+                        1f
+                        ),
+                true); // red glass dragon
+
 
         // calc local transform matrix for dragon
         Matrix4f dragon_local_transform = new Matrix4f();

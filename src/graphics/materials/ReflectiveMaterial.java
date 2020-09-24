@@ -64,7 +64,8 @@ public class ReflectiveMaterial extends Material{
             uploadTexturesToShader(shader);
         }
 
-        shader.uploadInt("isReflectiveMaterial", 1);    // not a reflective material
+        shader.uploadInt("isReflectiveMaterial", 1);
+        shader.uploadInt("isRefractiveMaterial", 0);    // not a reflective material
     }
 
 

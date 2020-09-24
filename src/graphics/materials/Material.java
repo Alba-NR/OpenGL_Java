@@ -89,6 +89,7 @@ public class Material {
         }
 
         shader.uploadInt("isReflectiveMaterial", 0);    // not a reflective material
+        shader.uploadInt("isRefractiveMaterial", 0);    // not a refractive material
     }
 
     /**

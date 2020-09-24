@@ -6,5 +6,6 @@ package graphics.textures;
 public enum TextureType {
     DIFFUSE,
     SPECULAR,
-    REFLECTION
+    REFLECTION,
+    REFRACTION
 }
