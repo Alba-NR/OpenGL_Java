@@ -48,7 +48,10 @@ public class Texture {
          *      - format and datatype of the source image
          *      - actual image data
          */
-        glTexImage2D(GL_TEXTURE_2D, 0, (isRGBA ? GL_RGBA : GL_RGB), width, height, 0, (isRGBA ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, imgData.getByteBuffer());
+        if(type == TextureType.DIFFUSE) // tex in sRGB space -- so sRGB values transformed to linear before any calcs
+            glTexImage2D(GL_TEXTURE_2D, 0, (isRGBA ? GL_SRGB_ALPHA : GL_SRGB), width, height, 0, (isRGBA ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, imgData.getByteBuffer());
+        else // tex in linear space
+            glTexImage2D(GL_TEXTURE_2D, 0, (isRGBA ? GL_RGBA : GL_RGB), width, height, 0, (isRGBA ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, imgData.getByteBuffer());
         glGenerateMipmap(GL_TEXTURE_2D);    // generate mipmap
 
         // set the texture wrapping & filtering parameters

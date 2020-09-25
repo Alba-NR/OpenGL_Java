@@ -221,7 +221,11 @@ class OpenGLApp {
         cube1_entity.addChild(cube3_entity);
 
         // FLOOR PLANE
-        Shape square = new Square(new ReflectiveMaterial(0.2f, 0.8f, 0.01f, 4f, new Vector3f(51/255f, 56/255f, 62/255f), new Vector3f(1f)));
+        //Shape square = new Square(new ReflectiveMaterial(0.2f, 0.8f, 0.01f, 4f, new Vector3f(51/255f, 56/255f, 62/255f), new Vector3f(1f)));
+        Texture woodenFloorTex = new Texture("./resources/textures/floor.png", true, TextureType.DIFFUSE);
+        Shape square = new Square(
+                new Material(Arrays.asList(woodenFloorTex))
+        );
 
         // calc local transform matrix for square
         Matrix4f floor_local_transform = new Matrix4f();

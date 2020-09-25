@@ -69,6 +69,7 @@ uniform bool isRefractiveMaterial;
 vec3 CalcDirLight(DirLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColour);
 vec3 CalcPointLight(PointLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColour);
 vec3 CalcSpotLight(SpotLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColour);
+vec3 toneMapAndDisplayEncode(vec3 linearRGB);
 
 void main()
 {
@@ -129,10 +130,21 @@ void main()
     // colour refracted from skybox
     I_result += refractedColour;
 
-    FragColor = vec4(I_result, 1.0);
+    // perform basic tonemapping (adjust brightness) and display encoding (apply gamma correction)
+    FragColor = vec4(toneMapAndDisplayEncode(I_result), 1.0);
+
 }
 
+// performs tone mapping (-- here: brightness adjustment) and display encoding (-- here: gamma correction) combined
+vec3 toneMapAndDisplayEncode(vec3 linearRGB)
+{
+    float L_white = 0.7; // scene-referrered luminance of white (controls brightness of img)
+    float inverseGamma = 1.0/2.2;   // gamma value is 2.2
 
+    return pow(linearRGB / L_white, vec3(inverseGamma));
+}
+
+// calc colour of fragment coming from light from the given directional light
 vec3 CalcDirLight(DirLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 specComponent)
 {
     // calc vectors
@@ -146,6 +158,7 @@ vec3 CalcDirLight(DirLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 specC
     return (I_diffuse + I_specular) * light.strength;
 }
 
+// calc colour of fragment coming from light from the given point light
 vec3 CalcPointLight(PointLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 specComponent)
 {
     //calc vectors
@@ -166,6 +179,7 @@ vec3 CalcPointLight(PointLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 s
     return I_diffuse + I_specular;
 }
 
+// calc colour of fragment coming from light from the given spotlight
 vec3 CalcSpotLight(SpotLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 specComponent)
 {
     //calc vectors
