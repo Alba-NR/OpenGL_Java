@@ -59,6 +59,7 @@ class OpenGLApp {
         // --- GLFW window creation (& init GLFW context)---
         WindowManager.createWindow();
 
+        glEnable(GL_MULTISAMPLE);   // enable MSAA
         glEnable(GL_DEPTH_TEST);    // enable depth testing
         glEnable(GL_CULL_FACE);     // enable culling
         glCullFace(GL_BACK);        // cull back faces

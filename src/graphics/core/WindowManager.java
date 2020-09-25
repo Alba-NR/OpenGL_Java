@@ -27,8 +27,10 @@ public class WindowManager {
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
+        glfwWindowHint(GLFW_SAMPLES, 4); // multi-sample buffer for MSAA
+
         // --- GLFW window creation ---
-        window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "learning", NULL, NULL);
+        window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL_Java", NULL, NULL);
         if(window == NULL){
             glfwTerminate();
             throw new RuntimeException("Failed to create the GLFW window");
