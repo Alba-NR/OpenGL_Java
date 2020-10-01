@@ -11,7 +11,7 @@ public abstract class Renderer {
     }
 
     /**
-     * Prepare {@link ShaderProgram} shaderProgram by uploading {@link Scene} scene light data.
+     * Prepare {@link ShaderProgram} shaderProgram by uploading {@link Scene} scene data.
      */
     public abstract void prepare(Scene scene);
 

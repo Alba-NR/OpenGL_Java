@@ -39,6 +39,7 @@ class OpenGLApp {
     private ShaderProgram phongShaderProgram;    // phong shader program using diff & spec textures or colours
     private ShaderProgram lightShaderProgram;           // shader prog to use for light cubes
     private ShaderProgram skyboxShaderProgram;          // shader prog to use for skybox
+    private ShaderProgram quadShaderProgram;            // shader prog to use for quad
     private Scene scene;                                // scene to render
 
     final private int SCR_WIDTH = WindowManager.getScrWidth();  // screen size settings
@@ -79,26 +80,26 @@ class OpenGLApp {
      * Create any shaders here.
      */
     private void setUpShaders() {
-        // create phong vertex shader
+        // create (blinn-)phong shaders
         Shader phong_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_vs.glsl");
-        // create phong fragment shader
         Shader phong_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/blinnPhong_wReflectionAndRefraction_fs.glsl");
-        // create phong shader program
         phongShaderProgram = new ShaderProgram(phong_vs, phong_fs);
 
-        // create light cube vertex shader
+        // create light cube shaders
         Shader light_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/lightSource_vs.glsl");
-        // create light cube fragment shader
         Shader light_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/lightSource_fs.glsl");
-        // create light cube shader program
         lightShaderProgram = new ShaderProgram(light_vs, light_fs);
 
-        // create light cube vertex shader
+        // create skybox shaders
         Shader skybox_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/skybox_vs.glsl");
-        // create light cube fragment shader
         Shader skybox_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/skybox_fs.glsl");
-        // create light cube shader program
         skyboxShaderProgram = new ShaderProgram(skybox_vs, skybox_fs);
+
+        // create quad shaders
+        Shader quad_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/quad_vs.glsl");
+        Shader quad_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/quad_fs.glsl");
+        quadShaderProgram = new ShaderProgram(quad_vs, quad_fs);
+
     }
 
     /**
@@ -291,6 +292,8 @@ class OpenGLApp {
         Renderer entityRenderer = new EntityPhongRenderer(phongShaderProgram);//EntityPhongRenderer(phongShaderProgram);
         Renderer lightSourceRenderer = new PointLightRenderer(lightShaderProgram);
         Renderer skyboxRenderer = new SkyboxRenderer(skyboxShaderProgram);
+        ToTextureRenderer toTextureRenderer = new ToTextureRenderer();
+        ScreenQuadRenderer screenQuadRenderer = new ScreenQuadRenderer(quadShaderProgram);
 
         // --------- SET UP SCENE ---------
         setUpScene();
@@ -298,6 +301,9 @@ class OpenGLApp {
         // --------- RENDER LOOP ---------
 
         // --- prepare renderers ---
+        toTextureRenderer.prepare();
+        screenQuadRenderer.prepare(new ScreenQuad(toTextureRenderer.getColourTex()));
+
         entityRenderer.prepare(scene);
         lightSourceRenderer.prepare(scene);
 
@@ -318,6 +324,9 @@ class OpenGLApp {
             processAWSDInput(deltaTime);
             currentKeyFState = processFlashLightToggle(scene.getFlashLight(), currentKeyFState);
 
+            // --- bind fbo to which to render ---
+            toTextureRenderer.bindFBOtoUse();
+
             // --- clear screen ---
             WindowManager.clearScreen();
 
@@ -333,6 +342,15 @@ class OpenGLApp {
             lightSourceRenderer.render(scene);
             skyboxRenderer.render(scene);
 
+            // bind default framebuffer & render quad
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glDisable(GL_DEPTH_TEST);       // so that screen-space quad isn't discarded bc of depth test
+            // clear relevant buffers
+            WindowManager.clearColour(1.0f, 1.0f, 1.0f); // optional, to correctly see quad in wireframe mode
+            WindowManager.clearColourBuffer();
+
+            screenQuadRenderer.render();    // render screen quad
+            glEnable(GL_DEPTH_TEST);
 
             // --- check events & swap buffers ---
             WindowManager.updateWindow();

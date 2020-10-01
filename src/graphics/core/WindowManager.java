@@ -1,6 +1,7 @@
 package graphics.core;
 
 import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFWVidMode;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -39,6 +40,11 @@ public class WindowManager {
         glfwMakeContextCurrent(window);
         createCapabilities();  // necessary here
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);   // set OpenGL window (OpenGL will render in this viewport)
+
+        // when working w/my 2nd monitor todo
+        //GLFWVidMode vid = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        //glfwSetWindowPos(window, (vid.width()+SCR_WIDTH/2), (vid.height()-(int)(SCR_HEIGHT*1.5)));
+
     }
 
     /**
@@ -66,12 +72,51 @@ public class WindowManager {
     }
 
     /**
-     * Clear screen to background colour. (by clearing colour & depth buffers...)
+     * Clear screen to background colour, by clearing colour & depth buffers too...
      */
     public static void clearScreen(){
         glClearColor(bgColour.x, bgColour.y, bgColour.z, 1.0f); // specify colour to clear to
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear screen's color buffer & depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // clear screen's color buffer & depth buffer
     }
+
+    /**
+     * Clear screen to background colour. (calls glClearColor)
+     */
+    public static void clearColour(){
+        glClearColor(bgColour.x, bgColour.y, bgColour.z, 1.0f); // specify colour to clear to
+    }
+    /**
+     * Clear screen to given colour. (calls glClearColor)
+     */
+    public static void clearColour(Vector3f colour){
+        glClearColor(colour.x, colour.y, colour.z, 1.0f);   // specify colour to clear to
+    }
+    /**
+     * Clear screen to given colour. (calls glClearColor)
+     */
+    public static void clearColour(float r, float g, float b){
+        glClearColor(r, g, b, 1.0f);   // specify colour to clear to
+    }
+
+    /**
+     * Clear colour & depth buffers.
+     */
+    public static void clearColourDepthBuffers(){
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    /**
+     * Clear colour buffer.
+     */
+    public static void clearColourBuffer(){
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    /**
+     * Clear depth buffer
+     */
+    public static void clearDepthBuffer(){
+        glClear(GL_DEPTH_BUFFER_BIT);
+    }
+
 
     /**
      * Get GLFW state of given key.

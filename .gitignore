@@ -1,5 +1,6 @@
 # Backup and temp files
 *~
+*.log
 
 # IntelliJ project files
 *.iml
