@@ -5,8 +5,10 @@ import static org.lwjgl.opengl.GL30.*;
 
 /**
  * Abstract class encapsulating a 3D mesh object.
- * Must have 3D position (vertex positions), UV texture coordinates and normals.
+ * Should have 3D position (vertex positions), UV texture coordinates and normals.
  *
+ * Note: subclasses representing specific shapes/meshes should implement the singleton
+ *      pattern, to avoid unnecessary creation & duplication of buffers.
  */
 public abstract class Mesh {
 

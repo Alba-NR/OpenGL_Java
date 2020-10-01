@@ -10,9 +10,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * To load images from files.
+ */
 public class ImageLoader {
 
-    private static boolean flipVertically = true;
+    private static boolean flipVertically = true;   // true if must flip img vertically when loading it
 
     /**
      * Loads the specified image and returns its image data:

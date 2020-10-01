@@ -11,6 +11,7 @@ import static org.lwjgl.opengl.GL20.*;
 
 /**
  * Represents a shader program to be used in an OpenGL application.
+ * (currently consists of vertex & fragment shaders only)
  */
 public class ShaderProgram {
     private Shader vertexShader;

@@ -3,6 +3,12 @@ package graphics.renderEngine;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+/**
+ * Stores the rendering context needed by the renderers to correctly set-up and render the scene.
+ * Includes:
+ *      - view and projection matrices (calculated using the camera's data in the main program)
+ *      - the camera's position and camera front vector
+ */
 public class RenderContext {
     private static Matrix4f viewMatrix, projMatrix;
     private static Vector3f cameraPos, cameraFront;

@@ -1,7 +1,6 @@
 package graphics.core;
 
 import org.joml.Vector3f;
-import org.lwjgl.glfw.GLFWVidMode;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -10,9 +9,12 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+/**
+ * Manages the OpenGL window.
+ */
 public class WindowManager {
 
-    private static long window;                // window handle
+    private static long window;                 // window handle
     final private static int SCR_WIDTH = 1200;  // screen size settings
     final private static int SCR_HEIGHT = 900;
     private static Vector3f bgColour = new Vector3f(0.2f, 0.2f, 0.2f);
@@ -39,7 +41,7 @@ public class WindowManager {
         // make the OpenGL context current
         glfwMakeContextCurrent(window);
         createCapabilities();  // necessary here
-        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);   // set OpenGL window (OpenGL will render in this viewport)
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);   // set OpenGL window/viewport (OpenGL will render in this viewport)
 
         // when working w/my 2nd monitor todo
         //GLFWVidMode vid = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -80,19 +82,19 @@ public class WindowManager {
     }
 
     /**
-     * Clear screen to background colour. (calls glClearColor)
+     * Clear screen to background colour, w/o clearing any buffers. (calls glClearColor)
      */
     public static void clearColour(){
         glClearColor(bgColour.x, bgColour.y, bgColour.z, 1.0f); // specify colour to clear to
     }
     /**
-     * Clear screen to given colour. (calls glClearColor)
+     * Clear screen to given colour, w/o clearing any buffers. (calls glClearColor)
      */
     public static void clearColour(Vector3f colour){
         glClearColor(colour.x, colour.y, colour.z, 1.0f);   // specify colour to clear to
     }
     /**
-     * Clear screen to given colour. (calls glClearColor)
+     * Clear screen to given colour, w/o clearing any buffers. (calls glClearColor)
      */
     public static void clearColour(float r, float g, float b){
         glClearColor(r, g, b, 1.0f);   // specify colour to clear to
@@ -116,7 +118,6 @@ public class WindowManager {
     public static void clearDepthBuffer(){
         glClear(GL_DEPTH_BUFFER_BIT);
     }
-
 
     /**
      * Get GLFW state of given key.

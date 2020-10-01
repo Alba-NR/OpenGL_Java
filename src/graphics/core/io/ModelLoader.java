@@ -8,6 +8,9 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * To load models.
+ */
 public class ModelLoader {
 
     // map of filenames to meshes created from .obj files ( to ensure only 1 mesh is created per .obj file)

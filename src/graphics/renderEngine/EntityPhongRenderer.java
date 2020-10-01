@@ -9,6 +9,9 @@ import graphics.shaders.ShaderProgram;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP;
 
+/**
+ * Renderer for rendering entities in the scene using the Phong (or Blinn-phong) illumination model.
+ */
 public class EntityPhongRenderer extends Renderer{
 
     public EntityPhongRenderer(ShaderProgram phongShaderToUse) {

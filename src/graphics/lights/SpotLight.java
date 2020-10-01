@@ -4,7 +4,10 @@ import graphics.shaders.ShaderProgram;
 import org.joml.Vector3f;
 
 /**
- * Represents a spotlight.
+ * Represents a spotlight, which has:
+ *      - a direction
+ *      - an inner cut-off cosine
+ *      - an outer cut-off cosine
  */
 public class SpotLight extends PointLight implements LightSource {
 
@@ -27,11 +30,23 @@ public class SpotLight extends PointLight implements LightSource {
         shader.uploadFloat(uniformName + ".outerCutoffCosine", outerCutoffCosine);
     }
 
+    /**
+     * Sets the spotlight's direction & uploads this new value to the given shader.
+     * @param direction new light direction
+     * @param shader {@link ShaderProgram} to which to upload direction
+     * @param uniformName name of uniform in shader to which to upload direction
+     */
     public void setAndUploadDirection(Vector3f direction, ShaderProgram shader, String uniformName){
         setDirection(direction);
         shader.uploadVec3f(uniformName + ".direction", direction);
     }
 
+    /**
+     * Sets the spotlight's position & uploads this new value to the given shader.
+     * @param position new light position
+     * @param shader {@link ShaderProgram} to which to upload position
+     * @param uniformName name of uniform in shader to which to upload position
+     */
     public void setAndUploadPosition(Vector3f position, ShaderProgram shader, String uniformName){
         setPosition(position);
         shader.uploadVec3f(uniformName + ".position", position);

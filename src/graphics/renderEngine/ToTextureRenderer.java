@@ -5,6 +5,15 @@ import graphics.core.WindowManager;
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+/**
+ * For rendering the scene to a texture, instead of rendering it to the default framebuffer (and hence the screen).
+ *
+ * Prepares the framebuffer to which the scene will be rendered -- Note! the scene is actually rendered by using the
+ * appropriate renderers for the scene.
+ *
+ * In order for the scene to be rendered to the colour buffer of the FBO created, the fbo must be binded before
+ * making any render calls, by calling bindFBOtoUse().
+ */
 public class ToTextureRenderer {
     private int fbo;
     private int colourTex;

@@ -12,6 +12,12 @@ import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 
+/**
+ * Represents a material, which has:
+ *      - diffuse & specular colours OR a list of textures (some of which will be diffuse & specular maps...)
+ *      - ambient, diffuse & specular reflection coefficients
+ *      - a shininess coefficient for specular reflection
+ */
 public class Material {
 
     private Vector3f diffColour, specColour;

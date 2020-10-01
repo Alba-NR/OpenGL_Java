@@ -5,6 +5,10 @@ import graphics.shapes.ScreenQuad;
 
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
+/**
+ * Renderer for rendering a quad/square {@link ScreenQuad} of the size of the screen.
+ * (and so which covers the entire screen... in normalised device coords...)
+ */
 public class ScreenQuadRenderer {
     private ShaderProgram shaderProgram;    // shader to use for rendering
     private ScreenQuad quad;
@@ -29,6 +33,9 @@ public class ScreenQuadRenderer {
         shaderProgram.uploadInt("screenTexture", 0); // tex at texture unit 0
     }
 
+    /**
+     * Render the quad using the {@link ShaderProgram} associated w/the renderer.
+     */
     public void render() {
         shaderProgram.use();
 

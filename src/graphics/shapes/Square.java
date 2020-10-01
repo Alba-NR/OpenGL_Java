@@ -4,7 +4,7 @@ import graphics.materials.Material;
 import graphics.shapes.meshes.SquareMesh;
 
 /**
- * Represents a square shape.
+ * Represents a square shape. Edges are unit length.
  */
 public class Square extends Shape {
     public Square(Material material) {

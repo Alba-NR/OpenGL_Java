@@ -2,6 +2,11 @@ package graphics.shapes.meshes;
 
 import static org.lwjgl.opengl.GL30.*;
 
+/**
+ * Represents a mesh that is created from a model loaded by {@link graphics.core.io.ModelLoader}.
+ * Set to public only so that {@link graphics.core.io.ModelLoader} can create instances.
+ * Not recommended to manually create instances of this class.
+ */
 public class MeshFromOBJ extends Mesh {
     private float[] vPositions;
     private int[] vIndeces;

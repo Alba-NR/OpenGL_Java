@@ -8,6 +8,9 @@ import org.joml.Matrix4f;
 
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
+/**
+ * Renderer for rendering point lights in the scene as a cube w/the light's colour.
+ */
 public class PointLightRenderer extends Renderer {
     private Cube cube;
 

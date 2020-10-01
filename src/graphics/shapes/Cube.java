@@ -3,6 +3,9 @@ package graphics.shapes;
 import graphics.materials.Material;
 import graphics.shapes.meshes.CubeMesh;
 
+/**
+ * Represents a unit cube.
+ */
 public class Cube extends Shape {
 
     public Cube(Material material){

@@ -2,6 +2,10 @@ package graphics.shapes.meshes;
 
 import static org.lwjgl.opengl.GL11.GL_CCW;
 
+/**
+ * Defines a quadrilateral / quad mesh that fills the entire screen
+ * in Normalized Device Coordinates (NDC). (Doesn't have normal vectors data)
+ */
 public class ScreenQuadMesh extends Mesh {
     private static ScreenQuadMesh instance = null;
 
@@ -19,7 +23,6 @@ public class ScreenQuadMesh extends Mesh {
 
     @Override
     float[] initializeVertexPositions() {
-        // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
         return new float[]{
                 -1.0f, 1.0f,
                 -1.0f, -1.0f,

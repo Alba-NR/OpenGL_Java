@@ -7,7 +7,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.*;
 
 /**
- *  Represents a texture.
+ *  Represents a texture loaded from an image file.
  */
 public class Texture {
     private String filename;

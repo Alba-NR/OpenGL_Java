@@ -3,7 +3,7 @@ package graphics.shapes.meshes;
 import static org.lwjgl.opengl.GL15.*;
 
 /**
- * Represents a cubic mesh used for a cubemap. Only contains vertex data.
+ * Defines a cubic mesh used for a cubemap. Only contains vertex data.
  */
 public class CubeMapCubeMesh extends Mesh{
 

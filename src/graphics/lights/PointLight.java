@@ -4,7 +4,11 @@ import graphics.shaders.ShaderProgram;
 import org.joml.Vector3f;
 
 /**
- * Represents a point light.
+ * Represents a point light, which has:
+ *      - a position in the scene (world coord)
+ *      - a colour
+ *      - a strength/intensity
+ *      - attenuation constants (for the quadratic, linear & constant terms)
  */
 public class PointLight implements LightSource {
     private Vector3f position;

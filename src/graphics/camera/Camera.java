@@ -3,6 +3,9 @@ package graphics.camera;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+/**
+ * Represents the camera through which the scene is viewed.
+ */
 public class Camera {
     private Vector3f cameraPos;     // position of camera
     private Vector3f cameraFront;   // vector along which camera is oriented/pointing to
@@ -12,7 +15,7 @@ public class Camera {
     private double pitch = 0.0;     // like polar angle ...
     private float cameraSpeed =  4.0f; // 1.0f for more 'cinematic' movement
     private float sensitivity =  0.08f; // 0.05f for more 'cinematic' movement
-    private double fov =  45.0;
+    private double fov =  45.0;     // fov = field of view
 
 
     public Camera(Vector3f cameraPos, Vector3f cameraFront, Vector3f up){

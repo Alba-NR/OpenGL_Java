@@ -3,7 +3,7 @@ package graphics.shapes.meshes;
 import static org.lwjgl.opengl.GL30.*;
 
 /**
- * Defines a square mesh.
+ * Defines a square mesh. Edges are unit length.
  */
 public class SquareMesh extends Mesh {
 

@@ -33,7 +33,9 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-
+/**
+ * The main app program.
+ */
 class OpenGLApp {
 
     private ShaderProgram phongShaderProgram;    // phong shader program using diff & spec textures or colours
@@ -41,6 +43,7 @@ class OpenGLApp {
     private ShaderProgram skyboxShaderProgram;          // shader prog to use for skybox
     private ShaderProgram quadShaderProgram;            // shader prog to use for quad
     private Scene scene;                                // scene to render
+    private ScreenQuad screenQuad;                      // quad filling entire screen (scene displayed as it's colour texture...)
 
     final private int SCR_WIDTH = WindowManager.getScrWidth();  // screen size settings
     final private int SCR_HEIGHT = WindowManager.getScrHeight();
@@ -302,7 +305,8 @@ class OpenGLApp {
 
         // --- prepare renderers ---
         toTextureRenderer.prepare();
-        screenQuadRenderer.prepare(new ScreenQuad(toTextureRenderer.getColourTex()));
+        screenQuad = new ScreenQuad(toTextureRenderer.getColourTex());
+        screenQuadRenderer.prepare(screenQuad);
 
         entityRenderer.prepare(scene);
         lightSourceRenderer.prepare(scene);
@@ -434,9 +438,11 @@ class OpenGLApp {
 
         // de-allocate all resources
         scene.deallocateMeshResources();
+        screenQuad.getMesh().deallocateResources();
         phongShaderProgram.delete();
         lightShaderProgram.delete();
         skyboxShaderProgram.delete();
+        quadShaderProgram.delete();
 
         // clean/delete all other GLFW's resources
         glfwTerminate();

@@ -3,8 +3,7 @@ package graphics.shapes.meshes;
 import static org.lwjgl.opengl.GL30.*;
 
 /**
- * Defines a Cube mesh.
- * Singleton pattern used to ensure only 1 set of buffers is created for the cube data.
+ * Defines a Cube mesh. Edges are unit length.
  */
 public class CubeMesh extends Mesh {
 

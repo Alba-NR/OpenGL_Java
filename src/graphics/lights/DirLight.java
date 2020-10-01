@@ -4,12 +4,15 @@ import graphics.shaders.ShaderProgram;
 import org.joml.Vector3f;
 
 /**
- * Represents a directional light.
+ * Represents a directional light, which has:
+ *      - a colour
+ *      - an intensity/strength
+ *      - a direction
  */
 public class DirLight implements LightSource{
     private Vector3f colour;
     private float strength;
-    private  Vector3f direction;
+    private Vector3f direction;
 
     public DirLight(Vector3f colour, float strength, Vector3f direction){
         this.colour = colour;

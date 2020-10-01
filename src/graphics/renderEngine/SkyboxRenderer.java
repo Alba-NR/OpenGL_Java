@@ -10,6 +10,9 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
+/**
+ * Renderer for rendering the skybox of a given scene.
+ */
 public class SkyboxRenderer extends Renderer {
 
     public SkyboxRenderer(ShaderProgram skyboxShaderToUse) {

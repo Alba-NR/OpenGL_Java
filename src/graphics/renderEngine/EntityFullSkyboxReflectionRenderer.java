@@ -7,6 +7,9 @@ import graphics.shaders.ShaderProgram;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE_CUBE_MAP;
 
+/**
+ * Renderer for rendering scene objects which fully reflect the skybox in the scene.
+ */
 public class EntityFullSkyboxReflectionRenderer extends Renderer{
 
     public EntityFullSkyboxReflectionRenderer(ShaderProgram phongShaderToUse) {

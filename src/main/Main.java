@@ -1,5 +1,8 @@
 package main;
 
+/**
+ * Main program to run the OpenGL application.
+ */
 public class Main {
     public static void main(String[] args) {
         OpenGLApp app = new OpenGLApp();
