@@ -3,8 +3,11 @@ package graphics.scene;
 import graphics.renderEngine.RenderContext;
 import graphics.shaders.ShaderProgram;
 import graphics.shapes.Shape;
+import graphics.textures.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+
+import java.util.List;
 
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
@@ -71,5 +74,11 @@ public class DrawableEntity extends Entity {
     public void deallocateMeshResources(){
         shape.getMesh().deallocateResources();
         children.forEach(Entity::deallocateMeshResources);
+    }
+
+    @Override
+    public int numOfTexUsedByMaterial() {
+        List<Texture> texList = shape.getMaterial().getTexturesList();
+        return texList == null ? 0 : texList.size();
     }
 }

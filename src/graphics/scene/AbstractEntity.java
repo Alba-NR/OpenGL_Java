@@ -30,4 +30,9 @@ public class AbstractEntity extends Entity{
     public void deallocateMeshResources(){
         children.forEach(Entity::deallocateMeshResources);
     }
+
+    @Override
+    public int numOfTexUsedByMaterial() {
+        return 0;
+    }
 }

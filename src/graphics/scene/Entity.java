@@ -66,6 +66,11 @@ public abstract class Entity {
     public abstract void deallocateMeshResources();
 
     /**
+     * Returns nº of textures the material uses (if Drawable, else 0).
+     */
+    public abstract int numOfTexUsedByMaterial();
+
+    /**
      * Adds the given node as a child of this node (& sets this node as the parent of the given node)
      * @param newChild {@link Entity} to add as child
      */
@@ -103,7 +108,7 @@ public abstract class Entity {
         }
     }
     public void updateWorld_transform(Matrix4f world_transform) {
-        // todo not sure if this method should be allowed... - maybe it's useful for setting up / debuggin the entities positions on the scene?
+        // todo not sure if this method should be allowed... - maybe it's useful for setting up / debugging the entities positions on the scene?
         if (!world_transform.equals(this.world_transform)){ // if stmt to avoid unnecessarily calling calcWorldMatrix()
             this.world_transform = world_transform;
             for (Entity child : children) child.calcWorldMatrix();
