@@ -5,6 +5,8 @@ out vec4 FragColor;
 in vec2 TexCoords;
 
 uniform sampler2D screenTexture;
+uniform float[9] kernel3x3;
+uniform int effectToUse; // 0 <=> none, 1 <=> invert, 2 <=> greyscale, 3 <=> apply 3x3 kernel
 
 // post-processing effects
 vec3 calcInverseColour(vec3 colour);
@@ -15,16 +17,20 @@ const float offset = 1.0 / 300.0;
 
 void main()
 {
-    //vec3 texColour = texture(screenTexture, TexCoords).rgb;
-    //FragColor = vec4(calcGreyscale(texColour), 1.0);
-
-    float kernel[9] = float[](
-        1, 1, 1,
-        1, -8, 1,
-        1, 1, 1
-    );
-
-    FragColor = vec4(apply3x3Kernel(kernel), 1.0);
+    switch(effectToUse){
+        case 0: // none
+            FragColor = texture(screenTexture, TexCoords);
+            break;
+        case 1: // invert colours
+            FragColor = vec4(calcInverseColour(texture(screenTexture, TexCoords).rbg), 1.0);
+            break;
+        case 2: // greyscale
+            FragColor = vec4(calcGreyscale(texture(screenTexture, TexCoords).rgb), 1.0);
+            break;
+        case 3: // apply 3x3 kernel
+            FragColor = vec4(apply3x3Kernel(kernel3x3), 1.0);
+            break;
+    }
 }
 
 vec3 calcInverseColour(vec3 colour){
@@ -35,7 +41,6 @@ vec3 calcGreyscale(vec3 colour){
     float average = 0.2126 * colour.r + 0.7152 * colour.g + 0.0722 * colour.b;  // calc weighted average
     return vec3(average);
 }
-
 
 
 vec3 apply3x3Kernel(float[9] kernel){

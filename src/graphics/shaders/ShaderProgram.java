@@ -125,6 +125,23 @@ public class ShaderProgram {
     }
 
     /**
+     * Upload a float array to 'target' shader uniform variable
+     * @param arr float array to upload
+     * @param target name of uniform variable to which to upload array
+     */
+    public void uploadFloatArray(String target, float[] arr){
+        glUniform1fv(glGetUniformLocation(id, target), arr);    // set array as uniform value
+    }
+    /**
+     * Upload a int array to 'target' shader uniform variable
+     * @param arr int array to upload
+     * @param target name of uniform variable to which to upload array
+     */
+    public void uploadIntArray(String target, int[] arr){
+        glUniform1iv(glGetUniformLocation(id, target), arr);    // set array as uniform value
+    }
+
+    /**
      * Tell shader where it can find attributes (inputs...)
      * @param location location of shader variable to which to bind given data
      * @param arrayBufferHandle	handle to data (vertex positions, normals or texture coordinates)

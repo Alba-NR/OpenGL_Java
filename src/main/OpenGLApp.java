@@ -10,6 +10,8 @@ import graphics.materials.Material;
 import graphics.materials.ReflectiveMaterial;
 import graphics.materials.RefractiveMaterial;
 import graphics.renderEngine.*;
+import graphics.renderEngine.postProcessing.EffectsManager;
+import graphics.renderEngine.postProcessing.PostProcessingEffect;
 import graphics.scene.DrawableEntity;
 import graphics.scene.Entity;
 import graphics.scene.Scene;
@@ -376,13 +378,19 @@ class OpenGLApp {
 
         // whenever key is pressed, repeated or released.
         glfwSetKeyCallback(win, (window, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) // close window when esc key is released
+            // close window when esc key is released
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                 glfwSetWindowShouldClose(window, true);
-            if (key == GLFW_KEY_E) { // view in wireframe mode whilst E is pressed
+            // view in wireframe mode whilst E is pressed
+            if (key == GLFW_KEY_E) {
                 if (action == GLFW_PRESS) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                 else if (action == GLFW_RELEASE) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             }
-            // AWSD used to move camera (in processArrowsInput() method)
+            // -> AWSD used to move camera (in processArrowsInput() method)
+            // number keys used to set post-processing effects
+            for(int i = 0; i < EffectsManager.getNumOfEffects(); i++){
+                if (key == GLFW_KEY_0 + i) RenderContext.setPostProcessingEffect(EffectsManager.getEffectByIntID(i));
+            }
         });
 
         // mouse-related callbacks
