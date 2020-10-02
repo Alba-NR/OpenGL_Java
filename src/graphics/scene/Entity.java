@@ -46,12 +46,19 @@ public abstract class Entity {
     }
 
     /**
-     * Render the model for which this node is the root in the scene graph.
-     * Uses the current active shader to do so.
+     * Render the model for which this node is the root in the scene graph, using the
+     * given shader.
      * ! Light specs must be previously uploaded to the shader before calling this method.
      * (note: renders this node's children too)
      */
     public abstract void render(ShaderProgram shaderProgram);
+
+    /**
+     * Render the model for which this node is the root in the scene graph to the DEPTH
+     * attachment of the currently bound framebuffer. Uses the given shader.
+     * (note: renders this node's children too)
+     */
+    public abstract void renderToDepthMap(ShaderProgram shaderProgram);
 
     /**
      * Deallocate the node's & its childrens mesh's resources.

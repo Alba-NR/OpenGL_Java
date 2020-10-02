@@ -6,7 +6,7 @@ import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 /**
- * For rendering the scene to a texture, instead of rendering it to the default framebuffer (and hence the screen).
+ * For rendering the scene to a colour texture, instead of rendering it to the default framebuffer (and hence the screen).
  *
  * Prepares the framebuffer to which the scene will be rendered -- Note! the scene is actually rendered by using the
  * appropriate renderers for the scene.
@@ -14,11 +14,11 @@ import static org.lwjgl.system.MemoryUtil.NULL;
  * In order for the scene to be rendered to the colour buffer of the FBO created, the fbo must be binded before
  * making any render calls, by calling bindFBOtoUse().
  */
-public class ToTextureRenderer {
+public class ToColourTextureRenderer {
     private int fbo;
     private int colourTex;
 
-    public ToTextureRenderer() {
+    public ToColourTextureRenderer() {
     }
 
     public void prepare() {

@@ -11,7 +11,6 @@ import graphics.materials.ReflectiveMaterial;
 import graphics.materials.RefractiveMaterial;
 import graphics.renderEngine.*;
 import graphics.renderEngine.postProcessing.EffectsManager;
-import graphics.renderEngine.postProcessing.PostProcessingEffect;
 import graphics.scene.DrawableEntity;
 import graphics.scene.Entity;
 import graphics.scene.Scene;
@@ -44,6 +43,8 @@ class OpenGLApp {
     private ShaderProgram lightShaderProgram;           // shader prog to use for light cubes
     private ShaderProgram skyboxShaderProgram;          // shader prog to use for skybox
     private ShaderProgram quadShaderProgram;            // shader prog to use for quad
+    private ShaderProgram toDepthTexShaderProgram;      // shader prog to use for rendering to depth texture
+    private ShaderProgram depthDebugShaderProgram;      // shader prog to use for rendering depth map as greyscale tex on screen quad
     private Scene scene;                                // scene to render
     private ScreenQuad screenQuad;                      // quad filling entire screen (scene displayed as it's colour texture...)
 
@@ -105,6 +106,14 @@ class OpenGLApp {
         Shader quad_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/quad_fs.glsl");
         quadShaderProgram = new ShaderProgram(quad_vs, quad_fs);
 
+        // create to depth texture shaders
+        Shader toDepthMap_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/toDepthMap_vs.glsl");
+        Shader toDepthMap_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/toDepthMap_fs.glsl");
+        toDepthTexShaderProgram = new ShaderProgram(toDepthMap_vs, toDepthMap_fs);
+
+        // create to depth debug shaders
+        Shader depthDebug_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/depthDebug_fs.glsl");
+        depthDebugShaderProgram = new ShaderProgram(quad_vs, depthDebug_fs);
     }
 
     /**
@@ -297,8 +306,10 @@ class OpenGLApp {
         Renderer entityRenderer = new EntityPhongRenderer(phongShaderProgram);//EntityPhongRenderer(phongShaderProgram);
         Renderer lightSourceRenderer = new PointLightRenderer(lightShaderProgram);
         Renderer skyboxRenderer = new SkyboxRenderer(skyboxShaderProgram);
-        ToTextureRenderer toTextureRenderer = new ToTextureRenderer();
-        ScreenQuadRenderer screenQuadRenderer = new ScreenQuadRenderer(quadShaderProgram);
+        //ScreenQuadRenderer screenQuadRenderer = new ScreenQuadRenderer(quadShaderProgram);
+        //ToColourTextureRenderer toColourTextureRenderer = new ToColourTextureRenderer();
+        DepthDebugScreenQuadRenderer screenQuadRenderer = new DepthDebugScreenQuadRenderer(depthDebugShaderProgram);
+        ToDepthTextureRenderer toDepthTextureRenderer = new ToDepthTextureRenderer(toDepthTexShaderProgram, 1024, 1024);
 
         // --------- SET UP SCENE ---------
         setUpScene();
@@ -306,12 +317,30 @@ class OpenGLApp {
         // --------- RENDER LOOP ---------
 
         // --- prepare renderers ---
-        toTextureRenderer.prepare();
-        screenQuad = new ScreenQuad(toTextureRenderer.getColourTex());
+        toDepthTextureRenderer.prepare(scene);
+
+        screenQuad = new ScreenQuad(toDepthTextureRenderer.getDepthTex());
         screenQuadRenderer.prepare(screenQuad);
+
+        //toColourTextureRenderer.prepare();
+        //screenQuad = new ScreenQuad(toColourTextureRenderer.getColourTex());
+        //screenQuadRenderer.prepare(screenQuad);
 
         entityRenderer.prepare(scene);
         lightSourceRenderer.prepare(scene);
+
+        //--- directional light's light space matrix, for shadow mapping ---
+        Matrix4f lightProjection = new Matrix4f().ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
+        Matrix4f lightView = new Matrix4f().lookAt(
+                new Vector3f(scene.getDirLight().getDirection()).mul(-1),
+                new Vector3f(0),
+                new Vector3f(0.0f, 10.f, 0.0f)
+        );
+        Matrix4f lightSpaceMatrix = new Matrix4f(lightProjection);
+        lightSpaceMatrix.mul(lightView);
+
+        RenderContext.setDirLightSpaceMatrix(lightSpaceMatrix);
+
 
         // --- (per frame info...) ---
         float deltaTime;	        // Time between current frame and last frame
@@ -331,13 +360,23 @@ class OpenGLApp {
             currentKeyFState = processFlashLightToggle(scene.getFlashLight(), currentKeyFState);
 
             // --- bind fbo to which to render ---
-            toTextureRenderer.bindFBOtoUse();
+            //toColourTextureRenderer.bindFBOtoUse();
 
             // --- clear screen ---
             WindowManager.clearScreen();
 
-            // --- render commands ---
+            //--- render to depth map ---
+            toDepthTextureRenderer.render(scene);
 
+            // --- render commands ---
+            // render depth map as a greyscale texture
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glDisable(GL_DEPTH_TEST);
+            WindowManager.clearColourBuffer(); // clear relevant buffers
+            screenQuadRenderer.render();    // render screen quad
+            glEnable(GL_DEPTH_TEST);
+
+            /*
             Matrix4f view = camera.calcLookAt(); // calc view matrix
             Matrix4f projection = new Matrix4f(); // create projection matrix
             projection.setPerspective((float) Math.toRadians(camera.getFOV()), (float) SCR_WIDTH / SCR_HEIGHT, 0.1f, 100.0f);
@@ -348,6 +387,7 @@ class OpenGLApp {
             lightSourceRenderer.render(scene);
             skyboxRenderer.render(scene);
 
+
             // bind default framebuffer & render quad
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glDisable(GL_DEPTH_TEST);       // so that screen-space quad isn't discarded bc of depth test
@@ -357,6 +397,7 @@ class OpenGLApp {
 
             screenQuadRenderer.render();    // render screen quad
             glEnable(GL_DEPTH_TEST);
+             */
 
             // --- check events & swap buffers ---
             WindowManager.updateWindow();

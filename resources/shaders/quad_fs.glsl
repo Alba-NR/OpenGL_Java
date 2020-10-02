@@ -1,8 +1,8 @@
 #version 330 core
 
-out vec4 FragColor;
-
 in vec2 TexCoords;
+
+out vec4 FragColor;
 
 uniform sampler2D screenTexture;
 uniform float[9] kernel3x3;

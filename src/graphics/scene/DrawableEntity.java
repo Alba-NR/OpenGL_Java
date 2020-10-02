@@ -52,6 +52,22 @@ public class DrawableEntity extends Entity {
     }
 
     @Override
+    public void renderToDepthMap(ShaderProgram shaderProgram) {
+        glBindVertexArray(shape.getMesh().getVAOHandle());
+
+        // bind data to shader
+        shaderProgram.bindDataToShader(0, shape.getMesh().getVertexVBOHandle(), 3);
+
+        // upload world transform matrix as model matrix to shader
+        shaderProgram.uploadMatrix4f("model_m", world_transform);
+
+        shape.getMesh().render();
+
+        // render children
+        for(Entity child : children) child.renderToDepthMap(shaderProgram);
+    }
+
+    @Override
     public void deallocateMeshResources(){
         shape.getMesh().deallocateResources();
         children.forEach(Entity::deallocateMeshResources);

@@ -21,6 +21,12 @@ public class AbstractEntity extends Entity{
     }
 
     @Override
+    public void renderToDepthMap(ShaderProgram shaderProgram) {
+        // render children
+        for(Entity child : children) child.renderToDepthMap(shaderProgram);
+    }
+
+    @Override
     public void deallocateMeshResources(){
         children.forEach(Entity::deallocateMeshResources);
     }

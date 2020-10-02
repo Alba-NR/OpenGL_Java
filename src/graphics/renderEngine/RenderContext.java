@@ -15,7 +15,10 @@ import org.joml.Vector3f;
 public class RenderContext {
     private static Matrix4f viewMatrix, projMatrix;
     private static Vector3f cameraPos, cameraFront;
+
     private static PostProcessingEffect postProcessingEffect = PostProcessingEffect.NONE;
+
+    private static Matrix4f dirLightSpaceMatrix;
 
     public static void setContext(Matrix4f view_m, Matrix4f projection_m, Vector3f camera_pos, Vector3f camera_front){
         viewMatrix = view_m;
@@ -27,6 +30,11 @@ public class RenderContext {
     public static void setPostProcessingEffect(PostProcessingEffect effect){
         postProcessingEffect = effect;
     }
+
+    public static void setDirLightSpaceMatrix(Matrix4f dirLightSpaceMatrix) {
+        RenderContext.dirLightSpaceMatrix = dirLightSpaceMatrix;
+    }
+
 
     public static Matrix4f getViewMatrix(){
         return viewMatrix;
@@ -46,5 +54,9 @@ public class RenderContext {
 
     public static PostProcessingEffect getPostProcessingEffect() {
         return postProcessingEffect;
+    }
+
+    public static Matrix4f getDirLightSpaceMatrix() {
+        return dirLightSpaceMatrix;
     }
 }
