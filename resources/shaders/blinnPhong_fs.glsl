@@ -41,9 +41,11 @@ struct SpotLight { // flash light (spotlight)
     float quadratic;
 };
 
-in vec2 TexCoord;   // texture UV coord
-in vec3 wc_normal;  // fragment normal in world coord
-in vec3 wc_fragPos; // fragment position in world coord
+in VS_OUT {
+    vec2 TexCoords;   // texture UV coord
+    vec3 wc_normal;  // fragment normal in world coord
+    vec3 wc_fragPos; // fragment position in world coord
+} fs_in;
 
 out vec4 FragColor;
 
@@ -67,15 +69,15 @@ void main()
     vec3 I_result;
 
     // calc vectors
-    vec3 N = normalize(wc_normal);
-    vec3 V = normalize(wc_cameraPos - wc_fragPos);
+    vec3 N = normalize(fs_in.wc_normal);
+    vec3 V = normalize(wc_cameraPos - fs_in.wc_fragPos);
 
     // get diffuse & specular colours...
     vec3 diffColour, specColour, diffComponent, specComponent;
     if(materialUsesTextures){
         // ...from textures (the maps...)
-        diffColour = vec3(texture(material.diffuse_tex1, TexCoord));
-        specColour = vec3(texture(material.specular_tex1, TexCoord));
+        diffColour = vec3(texture(material.diffuse_tex1, fs_in.TexCoords));
+        specColour = vec3(texture(material.specular_tex1, fs_in.TexCoords));
     } else {
         diffColour = material.diffuseColour;
         specColour = material.specularColour;
@@ -115,11 +117,11 @@ vec3 CalcDirLight(DirLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 specC
 vec3 CalcPointLight(PointLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 specComponent)
 {
     //calc vectors
-    vec3 L = normalize(light.position - wc_fragPos);
+    vec3 L = normalize(light.position - fs_in.wc_fragPos);
     vec3 H = normalize(N + V);
 
     // attenuation
-    float distance = length(light.position - wc_fragPos);
+    float distance = length(light.position - fs_in.wc_fragPos);
     float attenuation = light.strength / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
     // diffuse & specular shading
@@ -135,11 +137,11 @@ vec3 CalcPointLight(PointLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 s
 vec3 CalcSpotLight(SpotLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 specComponent)
 {
     //calc vectors
-    vec3 L = normalize(light.position - wc_fragPos);
+    vec3 L = normalize(light.position - fs_in.wc_fragPos);
     vec3 H = normalize(N + V);
 
     // attenuation
-    float distance = length(light.position - wc_fragPos);
+    float distance = length(light.position - fs_in.wc_fragPos);
     float attenuation =  light.strength / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
     // angles for cutoff of spotlight
