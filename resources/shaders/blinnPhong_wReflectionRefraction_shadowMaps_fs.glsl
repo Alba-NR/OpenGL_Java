@@ -75,7 +75,7 @@ uniform sampler2D shadowMap;
 vec3 CalcDirLight(DirLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColour);
 vec3 CalcPointLight(PointLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColour);
 vec3 CalcSpotLight(SpotLight light, vec3 N, vec3 V, vec3 diffColour, vec3 specColour);
-float CalcShadow(vec4 fragPosLightSpace);
+float CalcShadow(DirLight light, vec3 N, vec4 fragPosLightSpace);
 vec3 toneMapAndDisplayEncode(vec3 linearRGB);
 
 void main()
@@ -121,8 +121,8 @@ void main()
     vec3 specComponent = material.K_spec * specColour;
 
     // Directional lighting
-    float shadow = CalcShadow(fs_in.lightSpace_fragPos);
-    if(shadow == 0.0) I_result += CalcDirLight(dirLight, N, V, diffComponent, specComponent);
+    float shadow = CalcShadow(dirLight, N, fs_in.lightSpace_fragPos);
+    I_result += (1.0 - shadow) * CalcDirLight(dirLight, N, V, diffComponent, specComponent);
 
     // Point lights
     for(int i = 0; i < MAX_POINT_LIGHTS; i++) I_result += CalcPointLight(pointLights[i], N, V, diffComponent, specComponent);
@@ -212,18 +212,39 @@ vec3 CalcSpotLight(SpotLight light, vec3 N, vec3 V, vec3 diffComponent, vec3 spe
     return I_diffuse + I_specular;
 }
 
-float CalcShadow(vec4 fragPosLightSpace){
-    // all done from dir light's perspective
+float CalcShadow(DirLight light, vec3 N, vec4 fragPosLightSpace)
+{
+    // (vv all done from dir light's perspective)
+
     // perform perspective divide (used later w/perspective projection; not needed w/orthographic proj)
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5; // todo why?
-    // get closest depth value
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
-    // get depth of current frag
-    float currentDepth = projCoords.z;
-    // check whether current frag pos is in shadow
-    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+
+    float shadow = 0.0;
+    if(projCoords.z <= 1.0){
+        vec3 L = normalize(-light.direction); // calc to light vector
+        /*
+        float closestDepth = texture(shadowMap, projCoords.xy).r;   // get closest depth value
+        float currentDepth = projCoords.z;  // get depth of current frag
+
+        float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);  // calc bias (to avoid 'shadow acne' // moiré pattern aliasing)
+        shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0; // check whether current frag pos is in shadow
+        */
+        // impl PCF (percentage-closer filtering) to produce softer shadows
+        float currentDepth = projCoords.z;  // get depth of current frag
+        float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);  // calc bias (to avoid 'shadow acne' // moiré pattern aliasing)
+
+        vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+
+        for(int x = -1; x <= 1; ++x){
+            for(int y = -1; y <= 1; ++y){
+                float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+                shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+            }
+        }
+        shadow /= 9.0;
+    }
 
     return shadow;
 }

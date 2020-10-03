@@ -271,7 +271,7 @@ class OpenGLApp {
         // GRASS
         Texture grassTex = new Texture("./resources/textures/grass.png", true, TextureType.DIFFUSE);
         grassTex.setTexWrapToClampToEdge();
-        Material grassMaterial = new Material(Collections.singletonList(grassTex));
+        Material grassMaterial = new Material(0.5f, 0.99f, 0.01f, 64f, Collections.singletonList(grassTex));
         Shape grassShape = new Square(grassMaterial);
 
         List<Entity> grassEntities = new ArrayList<>();

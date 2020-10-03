@@ -41,8 +41,9 @@ public class ToDepthTextureRenderer extends Renderer {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, new float[]{1.0f, 1.0f, 1.0f, 1.0f});
         glBindTexture(GL_TEXTURE_2D, 0);    // unbind tex
 
         // attach depth map tex as depth attachment of currently bound fbo
@@ -61,6 +62,8 @@ public class ToDepthTextureRenderer extends Renderer {
 
     @Override
     public void render(Scene scene) {
+        glCullFace(GL_FRONT);   // to avoid peter-panning shadow artifact
+
         shaderProgram.use();
 
         shaderProgram.uploadMatrix4f("lightSpace_m", RenderContext.getDirLightSpaceMatrix());
@@ -74,6 +77,7 @@ public class ToDepthTextureRenderer extends Renderer {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);   // unbind fbo
         glViewport(0, 0, WindowManager.getScrWidth(), WindowManager.getScrHeight());    // reset OpenGL viewport
+        glCullFace(GL_BACK);    // reset cull faces to back-facing faces
     }
 
     /**
