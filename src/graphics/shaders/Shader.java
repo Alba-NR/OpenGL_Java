@@ -31,7 +31,7 @@ public class Shader {
      */
     private void load(){
         // read the shader's source code from given file
-        String shaderSource = null;
+        String shaderSource;
         try {
             shaderSource = String.join("\n", Files.readAllLines(Paths.get(filename)));
         } catch (IOException e) {

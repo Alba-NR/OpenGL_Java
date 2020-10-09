@@ -11,11 +11,12 @@ import static org.lwjgl.opengl.GL20.*;
 
 /**
  * Represents a shader program to be used in an OpenGL application.
- * (currently consists of vertex & fragment shaders only)
+ * (consists of vertex & fragment shaders, and optionally a geometry shader)
  */
 public class ShaderProgram {
     private Shader vertexShader;
     private Shader fragmentShader;
+    private Shader geomShader;
     private int id ;
 
     /**
@@ -27,6 +28,21 @@ public class ShaderProgram {
     public ShaderProgram(Shader vertexShader, Shader fragmentShader) {
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;
+        this.geomShader = null;
+        createProgram();
+    }
+
+    /**
+     * Initialise fields to given values.
+     * Calls createProgram to create a new shader program for OpenGL.
+     * @param vertexShader {@link Shader} vertex shader to include
+     * @param fragmentShader {@link Shader} fragment shader to include
+     * @param geomShader {@link Shader} geometry shader to include
+     */
+    public ShaderProgram(Shader vertexShader, Shader fragmentShader, Shader geomShader) {
+        this.vertexShader = vertexShader;
+        this.fragmentShader = fragmentShader;
+        this.geomShader = geomShader;
         createProgram();
     }
 
@@ -38,6 +54,7 @@ public class ShaderProgram {
         id = glCreateProgram();                         // create shader program
         glAttachShader(id, vertexShader.getHandle());   // attach compiled shaders to program
         glAttachShader(id, fragmentShader.getHandle());
+        if(geomShader != null) glAttachShader(id, geomShader.getHandle());
         glLinkProgram(id);                              // link attached shaders in one program
 
         // check if linking failed
