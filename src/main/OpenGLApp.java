@@ -33,6 +33,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 
 /**
  * The main app program.
@@ -44,6 +45,7 @@ class OpenGLApp {
     private ShaderProgram skyboxShaderProgram;          // shader prog to use for skybox
     private ShaderProgram quadShaderProgram;            // shader prog to use for quad
     private ShaderProgram toDepthTexShaderProgram;      // shader prog to use for rendering to depth texture
+    private ShaderProgram toDepthCubeMapShaderProgram;      // shader prog to use for rendering to depth texture
     private Scene scene;                                // scene to render
     private ScreenQuad screenQuad;                      // quad filling entire screen (scene displayed as it's colour texture...)
 
@@ -87,7 +89,7 @@ class OpenGLApp {
     private void setUpShaders() {
         // create (blinn-)phong shaders
         Shader phong_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/phong_shadowMaps_vs.glsl");
-        Shader phong_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/blinnPhong_wReflectionRefraction_shadowMaps_fs.glsl");
+        Shader phong_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/blinnPhong_wReflectionRefraction_ALLshadowMaps_fs.glsl");
         phongShaderProgram = new ShaderProgram(phong_vs, phong_fs);
 
         // create light cube shaders
@@ -109,6 +111,12 @@ class OpenGLApp {
         Shader toDepthMap_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/toDepthMap_vs.glsl");
         Shader toDepthMap_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/toDepthMap_fs.glsl");
         toDepthTexShaderProgram = new ShaderProgram(toDepthMap_vs, toDepthMap_fs);
+
+        // create to depth cubemap shaders
+        Shader toDepthCubeMap_vs = new Shader(GL_VERTEX_SHADER, "./resources/shaders/toDepthCubeMap_vs.glsl");
+        Shader toDepthCubeMap_fs = new Shader(GL_FRAGMENT_SHADER, "./resources/shaders/toDepthCubeMap_fs.glsl");
+        Shader toDepthCubeMap_gs = new Shader(GL_GEOMETRY_SHADER, "./resources/shaders/toDepthCubeMap_gs.glsl");
+        toDepthCubeMapShaderProgram = new ShaderProgram(toDepthCubeMap_vs, toDepthCubeMap_fs, toDepthCubeMap_gs);
     }
 
     /**
@@ -163,7 +171,7 @@ class OpenGLApp {
         PointLight pointLight1 = new PointLight(
                 pointLightPositions[0],
                 pointLightColours[0],
-                2.5f,
+                10.0f,
                 1.0f,
                 0.09f,
                 0.032f
@@ -304,6 +312,7 @@ class OpenGLApp {
         ScreenQuadRenderer screenQuadRenderer = new ScreenQuadRenderer(quadShaderProgram);
         ToColourTextureRenderer toColourTextureRenderer = new ToColourTextureRenderer();
         ToDepthTextureRenderer toDepthTextureRenderer = new ToDepthTextureRenderer(toDepthTexShaderProgram, 1024, 1024);
+        ToDepthCubeMapRenderer toDepthCubeMapRenderer = new ToDepthCubeMapRenderer(toDepthCubeMapShaderProgram, 1024, 1024);
 
         // --------- SET UP SCENE ---------
         setUpScene();
@@ -311,22 +320,62 @@ class OpenGLApp {
         // --------- RENDER LOOP ---------
 
         //--- directional light's light space matrix, for shadow mapping ---
-        Matrix4f lightProjection = new Matrix4f().ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
-        Matrix4f lightView = new Matrix4f().lookAt(
+        Matrix4f dirLightProjection = new Matrix4f().ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
+        Matrix4f dirLightView = new Matrix4f().lookAt(
                 new Vector3f(scene.getDirLight().getDirection()).mul(-1),
                 new Vector3f(0),
                 new Vector3f(0.0f, 10.f, 0.0f)
         );
-        Matrix4f lightSpaceMatrix = new Matrix4f(lightProjection);
-        lightSpaceMatrix.mul(lightView);
+        Matrix4f dirLightSpaceMatrix = new Matrix4f(dirLightProjection);
+        dirLightSpaceMatrix.mul(dirLightView);
 
-        RenderContext.setDirLightSpaceMatrix(lightSpaceMatrix);
+        RenderContext.setDirLightSpaceMatrix(dirLightSpaceMatrix);
+
+        //--- 1st point light's space matrices, for omnidirectional shadow mapping ---
+        List<Matrix4f> pointLightSpaceMatrices = new ArrayList<>();
+        float farPlane =  25.0f;
+        toDepthCubeMapShaderProgram.use();
+        toDepthCubeMapShaderProgram.uploadFloat("farPlane", farPlane); // todo: move to renderers themselves
+        phongShaderProgram.use();
+        phongShaderProgram.uploadFloat("farPlane", farPlane);
+        Matrix4f pointLightProjection = new Matrix4f().perspective((float) Math.toRadians(90.0f), 1.0f, 1.0f, farPlane);
+        List<Vector3f> firstVectList = Arrays.asList(
+                new Vector3f(1.0f, 0.0f, 0.0f),
+                new Vector3f(-1.0f, 0.0f, 0.0f),
+                new Vector3f(0.0f, 1.0f, 0.0f),
+                new Vector3f(0.0f, -1.0f, 0.0f),
+                new Vector3f(0.0f, 0.0f, 1.0f),
+                new Vector3f(0.0f, 0.0f, -1.0f)
+        );
+        List<Vector3f> secondVectList = Arrays.asList(
+                new Vector3f(0.0f, -1.0f, 0.0f),
+                new Vector3f(0.0f, -1.0f, 0.0f),
+                new Vector3f(0.0f, 0.0f, 1.0f),
+                new Vector3f(0.0f, 0.0f, -1.0f),
+                new Vector3f(0.0f, -1.0f, 0.0f),
+                new Vector3f(0.0f, -1.0f, 0.0f)
+        );
+        for(int i = 0; i < 6; i++){
+            PointLight light = scene.getPointLights().get(0);
+            Matrix4f lightView = new Matrix4f().lookAt(
+                    new Vector3f(light.getPosition()),
+                    new Vector3f(light.getPosition()).add(firstVectList.get(i)),
+                    secondVectList.get(i)
+            );
+            Matrix4f lightSpaceMatrix = new Matrix4f(pointLightProjection);
+            lightSpaceMatrix.mul(lightView);
+
+            pointLightSpaceMatrices.add(lightSpaceMatrix);
+        }
+
+        RenderContext.setPointLightSpaceMatricesList(pointLightSpaceMatrices);
 
 
         // --- prepare renderers ---
         toDepthTextureRenderer.prepare(scene);
+        toDepthCubeMapRenderer.prepare(scene);
 
-        entityRenderer = new EntityPhongWShadowMapsRenderer(phongShaderProgram, toDepthTextureRenderer.getDepthTex());
+        entityRenderer = new EntityPhongWAllShadowMapsRenderer(phongShaderProgram, toDepthTextureRenderer.getDepthTex(), toDepthCubeMapRenderer.getDepthCubeMap());
         entityRenderer.prepare(scene);
 
         lightSourceRenderer.prepare(scene);
@@ -358,6 +407,7 @@ class OpenGLApp {
 
             //--- render to depth map ---
             toDepthTextureRenderer.render(scene);
+            toDepthCubeMapRenderer.render(scene);
 
             // --- bind fbo to which to render ---
             toColourTextureRenderer.bindFBOtoUse();

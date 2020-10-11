@@ -12,15 +12,19 @@ import static org.lwjgl.opengl.GL13.*;
 
 /**
  * Renderer for rendering entities in the scene using the Phong (or Blinn-phong) illumination model.
- * Also uses shadow mapping for the directional light in the scene.
+ * Also uses shadow mapping for:
+ * - the directional light in the scene.
+ * - the 1st point light in the scene
  */
-public class EntityPhongWShadowMapsRenderer extends Renderer {
+public class EntityPhongWAllShadowMapsRenderer extends Renderer {
 
     private int shadowMapHandle;
+    private int shadowCubeMapHandle;
 
-    public EntityPhongWShadowMapsRenderer(ShaderProgram phongShaderToUse, int shadowMapHandle) {
+    public EntityPhongWAllShadowMapsRenderer(ShaderProgram phongShaderToUse, int shadowMapHandle, int shadowCubeMapHandle) {
         super(phongShaderToUse);
         this.shadowMapHandle = shadowMapHandle;
+        this.shadowCubeMapHandle = shadowCubeMapHandle;
     }
 
     /**
@@ -55,7 +59,12 @@ public class EntityPhongWShadowMapsRenderer extends Renderer {
         updateFlashlightInShader(scene.getFlashLight());
 
         // if scene uses skybox, bind skybox texture
-        if(scene.getSkybox() != null) glBindTexture(GL_TEXTURE_CUBE_MAP, scene.getSkybox().getCubeMapTexture().getHandle());
+        if(scene.getSkybox() != null){
+            glBindTexture(GL_TEXTURE_CUBE_MAP, scene.getSkybox().getCubeMapTexture().getHandle());
+        }
+
+        // bind shadow cubemap
+        glBindTexture(GL_TEXTURE_CUBE_MAP, shadowCubeMapHandle); // todo find a way to bind both skybox & depth cubemaps
 
         // render components
         for(Entity component : scene.getComponents()){

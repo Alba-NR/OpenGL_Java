@@ -4,6 +4,8 @@ import graphics.renderEngine.postProcessing.PostProcessingEffect;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.util.List;
+
 /**
  * Stores the rendering context needed by the renderers to correctly set-up and render the scene.
  * Includes:
@@ -19,6 +21,7 @@ public class RenderContext {
     private static PostProcessingEffect postProcessingEffect = PostProcessingEffect.NONE;
 
     private static Matrix4f dirLightSpaceMatrix;
+    private static List<Matrix4f> pointLightSpaceMatricesList; // todo
 
     public static void setContext(Matrix4f view_m, Matrix4f projection_m, Vector3f camera_pos, Vector3f camera_front){
         viewMatrix = view_m;
@@ -35,6 +38,10 @@ public class RenderContext {
         RenderContext.dirLightSpaceMatrix = dirLightSpaceMatrix;
     }
 
+    //todo
+    public static void setPointLightSpaceMatricesList(List<Matrix4f> matrix4fList){
+        pointLightSpaceMatricesList = matrix4fList;
+    }
 
     public static Matrix4f getViewMatrix(){
         return viewMatrix;
@@ -58,5 +65,10 @@ public class RenderContext {
 
     public static Matrix4f getDirLightSpaceMatrix() {
         return dirLightSpaceMatrix;
+    }
+
+    //todo
+    public static List<Matrix4f> getPointLightSpaceMatricesList() {
+        return pointLightSpaceMatricesList;
     }
 }
