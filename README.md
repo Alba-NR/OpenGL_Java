@@ -5,17 +5,43 @@ It started by creating a simple OpenGL application to draw a triangle on the scr
 
 Contents of `README`:
   - :clipboard: [Project Description](#clipboard-project-description)
+      - :beginner: [Some details & context](#beginner-some-details-and-context)
       - :checkered_flag: [Features already implemented](#checkered_flag-features-already-implemented)
       - :construction: [Currently working on](#construction-currently-working-on)
       - :triangular_flag_on_post: [(Ideas) New features to implement](#triangular_flag_on_post-ideas-new-features-to-implement)
-  - :camera: [Some Screenshots- yay!](#camera-some-screenshots)
-  - :beginner: How to use it --- y/n?? TODO (must re-consider copyright notice... & add license instead?)
+  - :camera: [Some Screenshots- yay!](#camera-some-screenshots) -- the fun part!! :sunglasses:
   
 ![Image: Sample Scene Rendered](screenshot_samples/1.jpg "Sample Scene Rendered (15/10/2020)")
 
 **:pushpin: Note:** This repository is set to public to showcase this project; however, this doesn't mean the code can be freely copied and used, please see the [Copyright Notice](#grey_exclamation-copyright-notice) below.
 
+---
+
 ## :clipboard: Project Description
+
+### :beginner: Some details and context:
+
+#### Motivation:
+After being introduced to OpenGL and it's rendering pipeline during an university course last year (Oct. 2019), during the summer (Aug. 2020) I decided to delve further into the details of how an OpenGL application works by building one from scratch! This way I aimed to explore in more detail the concepts that were mentioned during the lectures. To do this, I used a combination of on-line resources, including the great explanations from [https://learnopengl.com/](https://learnopengl.com/) (OpenGL & C++) and [ThinMatrix's playlist](https://www.youtube.com/watch?v=VS8wlS9hF8E&list=PLRIWtICgwaX0u7Rf9zkZhLoLuZVfUksDP) (Java LWJGL & OpenGL).
+
+#### Project structure:
+<img src="screenshot_samples/packages.png" alt="Project Structure" width="15%" align="right">
+
+- The application uses 2 libraries: Light-Weight Java Games Library (LWJGL) and Java OpenGL Math Library (JOML). Their files are in the `lib` folder.
+- The main application is included in the `main` package, with `Main`being the program that runs the application defined in `OpenGLApp`.
+- The graphics framework is inside the `graphics` package, which has subpackages for each of the different parts of the framework.
+- Any resources such as textures, models and shaders are in the appropriate folders in the `resources` folder.
+
+#### Running the application:
+When running the main program, a window where the rendering will take place appears. I have implemented the following controls:
+- `Move your mouse` to look around the scene, and `scroll` to zoom.
+- Use the `AWSD` keys to move left, forwards, backwards and right respectively. 
+- Use the `left shift` and `left ctrl` keys to move up or down respectively.
+- Press `F` to toggle (turn ON/OFF) the flashlight.
+- Press `E` tp view the scene in wireframe mode.
+- Press the numbers `0-5` to select the corresponding post-processing effect.
+
+---
 
 ### :checkered_flag: Features already implemented:
 Here is a list + short explanation of the features I have already implemented (not in the same order as they weere implemented):
@@ -37,7 +63,7 @@ Here is a list + short explanation of the features I have already implemented (n
 
 
 ### :construction: Currently working on:
-- Correctly implementing omnidirectional shadow mapping for 1 point light. -> :warning: issue: latest attempt (which generates and renders the shadows- yay!- makes reflection and refraction of the skybox not work.)
+- Correctly implementing omnidirectional shadow mapping for 1 point light. 🠪  :warning: **issue:** latest attempt (which generates and renders the shadows- yay!- makes reflection and refraction of the skybox not work.)
 - Next: omnidirectional shadow mapping for several point lights.
 
 ### :triangular_flag_on_post: (Ideas) New features to implement:
@@ -47,8 +73,10 @@ Here is a list + short explanation of the features I have already implemented (n
 - Ambient Occlusion
 - Physically Based Rendering (PBR)
 
+---
+
 ## :camera: Some Screenshots!!
-So this is the fun part of this readme- it's time to see some screenshots of the images rendered!! :)
+So this is the fun part of this readme- it's time to see some screenshots of the images rendered!! These are the results, enjoy! :)
 
 *Simple scene with lighting and shadows too:* <br>
 <img src="screenshot_samples/2.jpg" alt="Simple scene: lighting & shadows too." width="45%">
@@ -81,6 +109,9 @@ So this is the fun part of this readme- it's time to see some screenshots of the
 <img src="screenshot_samples/effect4_blur.jpg" alt="Blur." width="45%">
 <img src="screenshot_samples/effect5_edges.jpg" alt="Edge detection." width="45%">
 
+---
+
 ## :grey_exclamation: Copyright Notice
 
-Copyright &copy; 2020 Alba Navarro Rosales. All rights reserved. Please do not copy or modify the design or software in this repository for any purpose other than with the express written permission of the author, neither claim it as your own. Do check [this](https://choosealicense.com/no-permission/) out, thanks! :)
+Copyright &copy; 2020 Alba Navarro Rosales. All rights reserved. Please do not copy or modify the design or software in this repository for any purpose other than with the express written permission of the author, neither claim it as your own. Do check [this](https://choosealicense.com/no-permission/) out, thanks! :) 
+<br>:point_up: And remember- plagiarism is bad!
