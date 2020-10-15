@@ -124,7 +124,7 @@ class OpenGLApp {
      */
     private void setUpScene() {
         // --- SET UP SKYBOX ---
-        String filepath = "./resources/textures/yokohama_skybox/";
+        String filepath = "./resources/textures/sky_skybox/";
         String[] facesFileNames = new String[]{
                 filepath +  "right.jpg",
                 filepath +  "left.jpg",
@@ -256,14 +256,14 @@ class OpenGLApp {
 
         // DRAGON
         Shape dragonShape = new ShapeFromOBJ("./resources/models/dragon.obj",
-                new RefractiveMaterial(
+                new Material(//new RefractiveMaterial(
                         0.01f,
                         0.2f,
                         0.025f,
                         64f,
-                        new Vector3f(1.0f, 51/255f, 51/255f),
-                        new Vector3f(1.0f),
-                        1f
+                        new Vector3f(0.1f),//new Vector3f(1.0f, 51/255f, 51/255f),
+                        new Vector3f(1.0f)//,
+                        //1f
                         ),
                 true); // red glass dragon
 
